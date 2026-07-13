@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import quote
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -53,10 +54,14 @@ class Settings(BaseSettings):
 
     @property
     def mysql_url(self) -> str:
+        user = quote(self.mysql_user, safe="")
+        password = quote(self.mysql_password.get_secret_value(), safe="")
+        database = quote(self.mysql_database, safe="")
+
         return (
-            f"mysql+aiomysql://{self.mysql_user}:"
-            f"{self.mysql_password}@{self.mysql_host}:"
-            f"{self.mysql_port}/{self.mysql_database}"
+            f"mysql+aiomysql://{user}:"
+            f"{password}@{self.mysql_host}:"
+            f"{self.mysql_port}/{database}"
         )
 
 
