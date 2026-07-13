@@ -6,6 +6,16 @@ This directory contains the FastAPI backend for TORQUE.
 
 Sprint 0 initializes the backend application structure and exposes a versioned health-check endpoint.
 
+## Environment Configuration
+
+The backend uses environment variables for application configuration.
+
+Create a local `.env` file from the example:
+
+```bash
+cp .env.example .env
+```
+
 ## Setup
 
 Create and activate a virtual environment:
