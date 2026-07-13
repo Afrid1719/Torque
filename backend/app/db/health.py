@@ -1,5 +1,4 @@
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -10,7 +9,7 @@ class DatabaseUnavailableError(Exception):
 async def check_database_connection(session: AsyncSession) -> bool:
     try:
         result = await session.execute(text("SELECT 1"))
-    except SQLAlchemyError as exc:
+    except Exception as exc:
         raise DatabaseUnavailableError("Database connectivity check failed.") from exc
 
     return result.scalar_one() == 1
