@@ -98,3 +98,11 @@ Security requirements:
 - Model files must not be accepted through public upload endpoints.
 - Training and production dependency versions should be recorded.
 - Model metadata should include feature names, model version, training timestamp, and evaluation information.
+
+## Frontend UI Framework Decision
+
+TORQUE uses Material UI as the frontend component library.
+
+Material UI was selected because the application requires form-heavy screens, dashboards, tables, dialogs, status indicators, and role-specific layouts. Using a mature component library reduces custom UI implementation effort and helps maintain visual consistency across the application.
+
+TailwindCSS is not used in the MVP frontend.
