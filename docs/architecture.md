@@ -23,6 +23,9 @@ TORQUE uses Alembic as the exclusive mechanism for database schema changes.
 
 SQLAlchemy models define the desired database structure, while Alembic migration files define how the database moves between schema versions.
 
+The backend uses asynchronous SQLAlchemy 2.x sessions with the `aiomysql` MySQL driver.
+Route handlers receive database access through FastAPI dependencies and should not create unmanaged engine or connection instances directly.
+
 The application will not use `Base.metadata.create_all()` during normal startup.
 
 Migration policy:
