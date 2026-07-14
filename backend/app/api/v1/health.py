@@ -6,12 +6,10 @@ from app.db.session import get_db_session
 
 router = APIRouter(tags=["Health"])
 
+
 @router.get("/health")
 async def health_check() -> dict[str, str]:
-    return {
-        "status": "ok",
-        "service": "torque-api"
-    }
+    return {"status": "ok", "service": "torque-api"}
 
 
 @router.get("/health/database")

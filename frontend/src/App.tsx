@@ -41,9 +41,7 @@ function App() {
   const [requestState, setRequestState] = useState<RequestState>('loading')
   const [health, setHealth] = useState<BackendHealthResponse | null>(null)
 
-  const loadHealth = useCallback(async () => {
-    setRequestState('loading')
-
+  const requestHealth = useCallback(async () => {
     try {
       const response = await getBackendHealth()
       setHealth(response)
@@ -54,9 +52,36 @@ function App() {
     }
   }, [])
 
+  const handleRefresh = useCallback(() => {
+    setRequestState('loading')
+    void requestHealth()
+  }, [requestHealth])
+
   useEffect(() => {
-    void loadHealth()
-  }, [loadHealth])
+    let isCurrentRequest = true
+
+    getBackendHealth()
+      .then((response) => {
+        if (!isCurrentRequest) {
+          return
+        }
+
+        setHealth(response)
+        setRequestState('success')
+      })
+      .catch(() => {
+        if (!isCurrentRequest) {
+          return
+        }
+
+        setHealth(null)
+        setRequestState('error')
+      })
+
+    return () => {
+      isCurrentRequest = false
+    }
+  }, [])
 
   return (
     <ThemeProvider theme={theme}>
@@ -69,7 +94,8 @@ function App() {
                 System Status
               </Typography>
               <Typography color="text.secondary">
-                Temporary health check for TORQUE frontend and backend connectivity.
+                Temporary health check for TORQUE frontend and backend
+                connectivity.
               </Typography>
             </Stack>
 
@@ -95,7 +121,7 @@ function App() {
 
                     <Button
                       disabled={requestState === 'loading'}
-                      onClick={loadHealth}
+                      onClick={handleRefresh}
                       variant="outlined"
                     >
                       Refresh
@@ -115,10 +141,7 @@ function App() {
                   )}
 
                   {requestState === 'success' && health && (
-                    <Alert
-                      severity="success"
-                      variant="outlined"
-                    >
+                    <Alert severity="success" variant="outlined">
                       <Stack spacing={1}>
                         <Typography sx={{ fontWeight: 600 }}>
                           Backend API is reachable.
@@ -129,20 +152,25 @@ function App() {
                           useFlexGap
                           sx={{ flexWrap: 'wrap' }}
                         >
-                          <Chip label={`status: ${health.status}`} color="success" size="small" />
-                          <Chip label={`service: ${health.service}`} size="small" />
+                          <Chip
+                            label={`status: ${health.status}`}
+                            color="success"
+                            size="small"
+                          />
+                          <Chip
+                            label={`service: ${health.service}`}
+                            size="small"
+                          />
                         </Stack>
                       </Stack>
                     </Alert>
                   )}
 
                   {requestState === 'error' && (
-                    <Alert
-                      severity="error"
-                      variant="outlined"
-                    >
-                      Backend API is unavailable. Confirm the FastAPI server is running and
-                      VITE_API_BASE_URL points to the backend origin.
+                    <Alert severity="error" variant="outlined">
+                      Backend API is unavailable. Confirm the FastAPI server is
+                      running and VITE_API_BASE_URL points to the backend
+                      origin.
                     </Alert>
                   )}
                 </Stack>

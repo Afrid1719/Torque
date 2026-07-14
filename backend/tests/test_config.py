@@ -1,5 +1,5 @@
-from pydantic import SecretStr
 import pytest
+from pydantic import SecretStr
 
 from app.core.config import Settings
 
@@ -14,8 +14,7 @@ def test_settings_builds_encoded_mysql_url_from_environment_values() -> None:
     )
 
     assert settings.mysql_url == (
-        "mysql+aiomysql://torque%20user:p%40ss%20word"
-        "@db.local:3307/torque%20test"
+        "mysql+aiomysql://torque%20user:p%40ss%20word@db.local:3307/torque%20test"
     )
 
 

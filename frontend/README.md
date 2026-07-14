@@ -43,8 +43,11 @@ The temporary system-status page is available at the frontend root URL.
 ```bash
 npm run dev
 npm run build
+npm run format
+npm run format:check
 npm run lint
 npm run preview
+npm test
 ```
 
 ## Notes

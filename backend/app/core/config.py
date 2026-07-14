@@ -1,8 +1,10 @@
 from functools import lru_cache
 from typing import Literal
 from urllib.parse import quote
+
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     app_name: str = Field(default="TORQUE API", alias="APP_NAME")
@@ -21,7 +23,9 @@ class Settings(BaseSettings):
     mysql_port: int = Field(default=3306, alias="MYSQL_PORT")
     mysql_database: str = Field(default="torque_db", alias="MYSQL_DATABASE")
     mysql_user: str = Field(default="torque_user", alias="MYSQL_USER")
-    mysql_password: SecretStr = Field(default=SecretStr("change_me"), alias="MYSQL_PASSWORD")
+    mysql_password: SecretStr = Field(
+        default=SecretStr("change_me"), alias="MYSQL_PASSWORD"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

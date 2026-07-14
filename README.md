@@ -222,11 +222,41 @@ Use this checklist after setting up a local environment:
 
 Pull requests targeting `develop` or `main` run GitHub Actions checks for the backend and frontend.
 
-The backend check installs `backend/requirements.txt`, verifies the FastAPI app imports, and runs `pytest` with coverage. Backend coverage must stay at or above 60%.
+The backend check installs `backend/requirements.txt`, verifies the FastAPI app imports, runs Ruff lint and format checks, and runs `pytest` with coverage. Backend coverage must stay at or above 60%.
 
-The frontend check installs dependencies with `npm ci`, runs Vitest with coverage, and builds the production frontend. Frontend coverage must stay at or above 60%.
+The frontend check installs dependencies with `npm ci`, runs ESLint, checks Prettier formatting, runs Vitest with coverage, and builds the production frontend. Frontend coverage must stay at or above 60%.
 
 The CI workflow uses dummy testing environment variables and does not use production secrets or deployment steps.
+
+## Code Quality Commands
+
+Run backend quality checks from the `backend` directory:
+
+```bash
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest
+```
+
+Format backend code with:
+
+```bash
+python -m ruff format .
+```
+
+Run frontend quality checks from the `frontend` directory:
+
+```bash
+npm run lint
+npm run format:check
+npm test
+```
+
+Format frontend code with:
+
+```bash
+npm run format
+```
 
 ## Troubleshooting
 

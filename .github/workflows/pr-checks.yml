@@ -43,6 +43,12 @@ jobs:
       - name: Verify FastAPI app import
         run: python -c "from app.main import app; print(app.title)"
 
+      - name: Run backend lint
+        run: python -m ruff check .
+
+      - name: Check backend formatting
+        run: python -m ruff format --check .
+
       - name: Run backend tests with coverage
         run: python -m pytest
 
@@ -66,6 +72,12 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Run frontend lint
+        run: npm run lint
+
+      - name: Check frontend formatting
+        run: npm run format:check
 
       - name: Run frontend tests with coverage
         run: npm test
