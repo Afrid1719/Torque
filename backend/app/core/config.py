@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     )
     debug: bool = Field(default=True, alias="DEBUG")
     api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")
+    cors_origins: list[str] = Field(
+        default=["http://localhost:5173", "http://127.0.0.1:5173"],
+        alias="CORS_ORIGINS",
+    )
 
     mysql_host: str = Field(default="127.0.0.1", alias="MYSQL_HOST")
     mysql_port: int = Field(default=3306, alias="MYSQL_PORT")
@@ -38,6 +42,13 @@ class Settings(BaseSettings):
     def validate_mysql_port(cls, value: int) -> int:
         if value <= 0 or value > 65535:
             raise ValueError("MYSQL_PORT must be between 1 and 65535.")
+        return value
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: list[str] | str) -> list[str]:
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
     @property

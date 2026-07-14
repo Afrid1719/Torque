@@ -27,3 +27,14 @@ def test_api_prefix_must_start_with_slash() -> None:
 def test_mysql_port_must_be_valid() -> None:
     with pytest.raises(ValueError, match="MYSQL_PORT"):
         Settings(MYSQL_PORT=70000)
+
+
+def test_cors_origins_can_be_read_from_comma_separated_environment_value() -> None:
+    settings = Settings(
+        CORS_ORIGINS="http://localhost:5173, http://127.0.0.1:5173",
+    )
+
+    assert settings.cors_origins == [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]

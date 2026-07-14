@@ -16,6 +16,12 @@ Create a local `.env` file from the example:
 cp .env.example .env
 ```
 
+For local frontend development, `CORS_ORIGINS` should include the Vite dev server origins:
+
+```env
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
 ## Database Setup
 
 TORQUE uses SQLAlchemy 2.x with asynchronous sessions for database access.

@@ -161,6 +161,7 @@ Open a second terminal:
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm run dev
 ```
@@ -169,15 +170,26 @@ Windows Command Prompt:
 
 ```cmd
 cd /d path\to\Torque\frontend
+copy .env.example .env
 npm install
 npm run dev
 ```
+
+The frontend reads the backend API origin from `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Do not store backend secrets in frontend environment variables. Values prefixed with `VITE_` are browser-visible.
 
 Vite prints the local frontend URL in the terminal, usually:
 
 ```text
 http://localhost:5173/
 ```
+
+The temporary system-status page is available at this frontend root URL.
 
 To confirm the frontend development environment can reach the backend health endpoint, keep the backend running and run this from the `frontend` directory:
 
@@ -225,6 +237,12 @@ If database health returns `unavailable`, confirm:
 - `torque_db` exists.
 - Migrations have been applied with `alembic upgrade head`.
 - FastAPI was restarted after changing `.env`.
+
+If the frontend system-status page cannot reach the backend, confirm:
+
+- FastAPI is running at the origin configured by `VITE_API_BASE_URL`.
+- `frontend/.env` contains only the backend origin, such as `http://localhost:8000`.
+- `backend/.env` allows the Vite dev origin in `CORS_ORIGINS`.
 
 If Alembic reports a migration failure, read the final error line. Common causes include invalid credentials, a missing database, or MySQL-specific schema issues such as `String` columns without a length.
 
