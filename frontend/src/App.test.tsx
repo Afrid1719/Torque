@@ -32,7 +32,10 @@ describe('App', () => {
   })
 
   it('displays controlled error state when backend health cannot be reached', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('network error')),
+    )
 
     render(<App />)
 

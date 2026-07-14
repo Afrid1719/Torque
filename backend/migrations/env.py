@@ -7,9 +7,9 @@ from sqlalchemy import pool
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+import app.db.models  # noqa: F401
 from app.core.config import get_settings
 from app.db.base import Base
-import app.db.models  # noqa: F401
 
 config = context.config
 

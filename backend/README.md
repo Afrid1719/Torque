@@ -84,6 +84,20 @@ Migration workflow:
 7. Confirm the rollback.
 8. Apply it again before committing if the schema should remain at the new head.
 
+## Code Quality
+
+Ruff is configured as the backend linter and formatter in `pyproject.toml`.
+Generated Alembic migration version files are excluded from Ruff checks.
+
+Run backend quality commands from the `backend` directory:
+
+```bash
+python -m ruff check .
+python -m ruff format .
+python -m ruff format --check .
+python -m pytest
+```
+
 ## Setup
 
 Create and activate a virtual environment:
