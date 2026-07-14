@@ -50,6 +50,34 @@ To verify connectivity:
 5. Stop the local MySQL service.
 6. Open the database health endpoint again and confirm it returns HTTP 503 with a controlled error message.
 
+## Database Migrations
+
+TORQUE uses Alembic for controlled database schema changes.
+FastAPI startup does not create or recreate database tables automatically.
+
+Run migration commands from the `backend` directory:
+
+```bash
+alembic current
+alembic revision --autogenerate -m "describe schema change"
+alembic upgrade head
+alembic downgrade -1
+```
+
+The Alembic environment reads the same database settings as the application from `.env`.
+SQLAlchemy metadata is provided by `app/db/base.py` and model imports under `app/db/models`.
+
+Migration workflow:
+
+1. Update SQLAlchemy models.
+2. Generate a migration with `alembic revision --autogenerate`.
+3. Review the generated file in `migrations/versions`.
+4. Apply it with `alembic upgrade head`.
+5. Confirm the database change.
+6. Roll it back with `alembic downgrade -1`.
+7. Confirm the rollback.
+8. Apply it again before committing if the schema should remain at the new head.
+
 ## Setup
 
 Create and activate a virtual environment:
