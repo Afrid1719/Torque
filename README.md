@@ -206,6 +206,16 @@ Use this checklist after setting up a local environment:
 - `npm run dev` starts the Vite development server.
 - The frontend health check command reaches `http://localhost:8000/api/v1/health`.
 
+## Pull Request Checks
+
+Pull requests targeting `develop` or `main` run GitHub Actions checks for the backend and frontend.
+
+The backend check installs `backend/requirements.txt`, verifies the FastAPI app imports, and runs `pytest` with coverage. Backend coverage must stay at or above 60%.
+
+The frontend check installs dependencies with `npm ci`, runs Vitest with coverage, and builds the production frontend. Frontend coverage must stay at or above 60%.
+
+The CI workflow uses dummy testing environment variables and does not use production secrets or deployment steps.
+
 ## Troubleshooting
 
 If database health returns `unavailable`, confirm:
