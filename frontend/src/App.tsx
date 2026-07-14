@@ -1,121 +1,157 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  CssBaseline,
+  Divider,
+  Stack,
+  ThemeProvider,
+  Typography,
+  createTheme,
+} from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
+
+import type { BackendHealthResponse } from './api/health'
+import { getBackendHealth } from './api/health'
 import './App.css'
 
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#0f766e',
+    },
+    background: {
+      default: '#f7f8fb',
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+})
+
+type RequestState = 'loading' | 'success' | 'error'
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [requestState, setRequestState] = useState<RequestState>('loading')
+  const [health, setHealth] = useState<BackendHealthResponse | null>(null)
+
+  const loadHealth = useCallback(async () => {
+    setRequestState('loading')
+
+    try {
+      const response = await getBackendHealth()
+      setHealth(response)
+      setRequestState('success')
+    } catch {
+      setHealth(null)
+      setRequestState('error')
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadHealth()
+  }, [loadHealth])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box component="main" className="status-page">
+        <Container maxWidth="md">
+          <Stack spacing={3}>
+            <Stack spacing={1}>
+              <Typography component="h1" variant="h4">
+                System Status
+              </Typography>
+              <Typography color="text.secondary">
+                Temporary health check for TORQUE frontend and backend connectivity.
+              </Typography>
+            </Stack>
 
-      <div className="ticks"></div>
+            <Card variant="outlined">
+              <CardContent>
+                <Stack spacing={3}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    sx={{
+                      alignItems: { sm: 'center' },
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box>
+                      <Typography component="h2" variant="h6">
+                        Backend API
+                      </Typography>
+                      <Typography color="text.secondary" variant="body2">
+                        GET /api/v1/health
+                      </Typography>
+                    </Box>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                    <Button
+                      disabled={requestState === 'loading'}
+                      onClick={loadHealth}
+                      variant="outlined"
+                    >
+                      Refresh
+                    </Button>
+                  </Stack>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+                  <Divider />
+
+                  {requestState === 'loading' && (
+                    <Alert
+                      icon={<CircularProgress size={22} />}
+                      severity="info"
+                      variant="outlined"
+                    >
+                      Checking backend health...
+                    </Alert>
+                  )}
+
+                  {requestState === 'success' && health && (
+                    <Alert
+                      severity="success"
+                      variant="outlined"
+                    >
+                      <Stack spacing={1}>
+                        <Typography sx={{ fontWeight: 600 }}>
+                          Backend API is reachable.
+                        </Typography>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          useFlexGap
+                          sx={{ flexWrap: 'wrap' }}
+                        >
+                          <Chip label={`status: ${health.status}`} color="success" size="small" />
+                          <Chip label={`service: ${health.service}`} size="small" />
+                        </Stack>
+                      </Stack>
+                    </Alert>
+                  )}
+
+                  {requestState === 'error' && (
+                    <Alert
+                      severity="error"
+                      variant="outlined"
+                    >
+                      Backend API is unavailable. Confirm the FastAPI server is running and
+                      VITE_API_BASE_URL points to the backend origin.
+                    </Alert>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Container>
+      </Box>
+    </ThemeProvider>
   )
 }
 
