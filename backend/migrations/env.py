@@ -23,6 +23,14 @@ def get_database_url() -> str:
     return get_settings().mysql_url
 
 
+def get_safe_error_message(exc: Exception) -> str:
+    message = str(exc)
+    password = get_settings().mysql_password.get_secret_value()
+    if password:
+        message = message.replace(password, "<redacted>")
+    return message
+
+
 def run_migrations_offline() -> None:
     context.configure(
         url=get_database_url(),
@@ -61,8 +69,9 @@ async def run_migrations_online() -> None:
             await connection.run_sync(do_run_migrations)
     except SQLAlchemyError as exc:
         raise CommandError(
-            "Database migration failed. Confirm MySQL is running and "
-            "backend .env database settings are valid."
+            "Database migration failed. Confirm MySQL is running, backend "
+            ".env database settings are valid, and the migration is valid. "
+            f"{type(exc).__name__}: {get_safe_error_message(exc)}"
         ) from exc
     finally:
         await connectable.dispose()
