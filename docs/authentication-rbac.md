@@ -170,6 +170,47 @@ Backend enforcement must follow these principles:
 
 Module boundaries do not bypass authorization. Internal calls within the modular monolith must preserve the same permission rules as API-triggered operations.
 
+### Reusable Role Enforcement
+
+Backend modules apply role checks through the shared dependencies in
+`app/api/dependencies/authorization.py`. Supported role identifiers are
+centralized in `app/core/roles.py`; route modules must not repeat role-name
+strings or read role values from request data.
+
+Single-role operations can use the provided `WorkshopManagerUser`,
+`ServiceAdvisorUser`, or `MechanicUser` annotated dependencies. Operations
+shared by multiple roles use the dependency factory explicitly:
+
+```python
+from typing import Annotated
+
+from fastapi import Depends
+
+from app.api.dependencies.authorization import require_roles
+from app.core.roles import RoleName
+from app.db.models import User
+
+ServiceTeamUser = Annotated[
+    User,
+    Depends(
+        require_roles(
+            RoleName.WORKSHOP_MANAGER,
+            RoleName.SERVICE_ADVISOR,
+        )
+    ),
+]
+```
+
+The dependency first uses the shared bearer authentication dependency, which
+loads the active user and current role from the database. Missing or invalid
+authentication returns a controlled `401`. A valid user with a disallowed or
+unknown database role receives a generic `403` that does not disclose the
+accepted roles. Resource ownership and assignment checks remain the
+responsibility of the relevant service layer after route-level role checks.
+
+Frontend role checks remain a navigation and presentation convenience only.
+They never replace these backend dependencies or resource-level authorization.
+
 ## Frontend Protected Routes
 
 The React application will maintain authentication state in a central auth provider and apply route metadata for allowed roles.
