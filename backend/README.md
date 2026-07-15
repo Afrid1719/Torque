@@ -95,6 +95,7 @@ Run backend quality commands from the `backend` directory:
 python -m ruff check .
 python -m ruff format .
 python -m ruff format --check .
+python -m pyright app
 python -m pytest
 ```
 
