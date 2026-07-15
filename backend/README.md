@@ -108,6 +108,27 @@ Plain-text passwords and password hashes must not be logged or returned in API
 responses. Password-policy validation, user creation, and login behavior are
 handled separately from the hashing utility.
 
+## Login Configuration
+
+The login endpoint is available at `POST /api/v1/auth/login`. Successful login
+returns a short-lived JWT access token and sets the persistent refresh token in
+an HttpOnly cookie. The raw refresh token is never returned in JSON, and only
+its hash is stored in `user_sessions`.
+
+Configure authentication through `backend/.env`:
+
+```env
+JWT_SECRET_KEY=replace_with_at_least_32_random_characters
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_SESSION_EXPIRE_DAYS=10
+REFRESH_COOKIE_NAME=torque_refresh_token
+```
+
+The access-token lifetime must remain between 15 and 30 minutes. Refresh
+sessions have a fixed 10-day lifetime. The refresh cookie is marked `Secure`
+outside local development.
+
 ## Setup
 
 Create and activate a virtual environment:
