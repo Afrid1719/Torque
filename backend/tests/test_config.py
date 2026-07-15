@@ -58,3 +58,9 @@ def test_refresh_cookie_security_depends_on_environment() -> None:
     assert testing.refresh_cookie_secure is True
     assert testing.refresh_cookie_path == "/api/v1/auth"
     assert testing.refresh_session_expire_seconds == 864000
+
+
+def test_refresh_session_expiry_accepts_environment_string() -> None:
+    settings = Settings(REFRESH_SESSION_EXPIRE_DAYS="10")
+
+    assert settings.refresh_session_expire_days == 10

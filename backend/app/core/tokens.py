@@ -21,6 +21,15 @@ class RefreshToken:
     token_hash: str
 
 
+@dataclass(frozen=True)
+class AccessTokenClaims:
+    user_id: int
+
+
+class InvalidAccessTokenError(Exception):
+    pass
+
+
 def create_access_token(
     user_id: int,
     role: str,
@@ -42,6 +51,24 @@ def create_access_token(
         algorithm=settings.jwt_algorithm,
     )
     return AccessToken(value=value, expires_at=expires_at)
+
+
+def decode_access_token(token: str, settings: Settings) -> AccessTokenClaims:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret_key.get_secret_value(),
+            algorithms=[settings.jwt_algorithm],
+            options={"require": ["sub", "iat", "exp", "jti"]},
+        )
+        user_id = int(payload["sub"])
+    except (jwt.InvalidTokenError, KeyError, TypeError, ValueError) as exc:
+        raise InvalidAccessTokenError from exc
+
+    if user_id <= 0:
+        raise InvalidAccessTokenError
+
+    return AccessTokenClaims(user_id=user_id)
 
 
 def hash_refresh_token(raw_value: str) -> str:

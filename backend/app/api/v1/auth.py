@@ -3,12 +3,22 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies.auth import CurrentUser
 from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
-from app.schemas.auth import LoginRequest, LoginResponse
+from app.schemas.auth import CurrentUserResponse, LoginRequest, LoginResponse
 from app.services.auth import InvalidCredentialsError, authenticate_user
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse,
+    responses={status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"}},
+)
+async def get_current_user_profile(current_user: CurrentUser) -> CurrentUserResponse:
+    return CurrentUserResponse.model_validate(current_user)
 
 
 @router.post(

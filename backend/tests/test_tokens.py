@@ -1,12 +1,15 @@
 from datetime import UTC, datetime
 
 import jwt
+import pytest
 from pydantic import SecretStr
 
 from app.core.config import Settings
 from app.core.tokens import (
+    InvalidAccessTokenError,
     create_access_token,
     create_refresh_token,
+    decode_access_token,
     hash_refresh_token,
 )
 
@@ -38,6 +41,33 @@ def test_access_token_contains_only_required_claims() -> None:
     assert claims["role"] == "workshop_manager"
     assert claims["exp"] - claims["iat"] == 20 * 60
     assert token.expires_at.timestamp() == claims["exp"]
+    assert decode_access_token(token.value, settings).user_id == 42
+
+
+def test_access_token_rejects_wrong_signature() -> None:
+    settings = Settings(JWT_SECRET_KEY=SecretStr(TEST_SECRET))
+    token = create_access_token(
+        user_id=42,
+        role="workshop_manager",
+        settings=Settings(
+            JWT_SECRET_KEY=SecretStr("different_token_test_secret_key_32_chars")
+        ),
+    )
+
+    with pytest.raises(InvalidAccessTokenError):
+        decode_access_token(token.value, settings)
+
+
+def test_access_token_rejects_non_positive_subject() -> None:
+    settings = Settings(JWT_SECRET_KEY=SecretStr(TEST_SECRET))
+    token = create_access_token(
+        user_id=0,
+        role="workshop_manager",
+        settings=settings,
+    )
+
+    with pytest.raises(InvalidAccessTokenError):
+        decode_access_token(token.value, settings)
 
 
 def test_refresh_token_is_random_and_stored_as_hash() -> None:

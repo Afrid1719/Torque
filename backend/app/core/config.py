@@ -33,9 +33,11 @@ class Settings(BaseSettings):
         ge=15,
         le=30,
     )
-    refresh_session_expire_days: Literal[10] = Field(
+    refresh_session_expire_days: int = Field(
         default=10,
         alias="REFRESH_SESSION_EXPIRE_DAYS",
+        ge=10,
+        le=10,
     )
     refresh_cookie_name: str = Field(
         default="torque_refresh_token",
