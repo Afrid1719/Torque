@@ -98,6 +98,16 @@ python -m ruff format --check .
 python -m pytest
 ```
 
+## Password Hashing
+
+TORQUE hashes user passwords with Argon2id through `pwdlib`. The shared
+`app/core/security.py` utility creates salted password hashes and verifies
+submitted passwords against stored hashes.
+
+Plain-text passwords and password hashes must not be logged or returned in API
+responses. Password-policy validation, user creation, and login behavior are
+handled separately from the hashing utility.
+
 ## Setup
 
 Create and activate a virtual environment:
