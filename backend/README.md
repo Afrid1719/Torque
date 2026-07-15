@@ -129,6 +129,10 @@ The access-token lifetime must remain between 15 and 30 minutes. Refresh
 sessions have a fixed 10-day lifetime. The refresh cookie is marked `Secure`
 outside local development.
 
+Authenticated clients can send the access token as `Authorization: Bearer
+<token>` to `GET /api/v1/auth/me`. The endpoint returns the current user's ID,
+username, and current database-backed role information.
+
 ## Setup
 
 Create and activate a virtual environment:
