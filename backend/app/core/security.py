@@ -1,7 +1,10 @@
+import secrets
+
 from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
 
 password_hasher = PasswordHash.recommended()
+dummy_password_hash = password_hasher.hash(secrets.token_urlsafe(32))
 
 
 def hash_password(plain_password: str) -> str:

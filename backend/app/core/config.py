@@ -19,6 +19,32 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
 
+    jwt_secret_key: SecretStr = Field(
+        alias="JWT_SECRET_KEY",
+        min_length=32,
+    )
+    jwt_algorithm: Literal["HS256"] = Field(
+        default="HS256",
+        alias="JWT_ALGORITHM",
+    )
+    access_token_expire_minutes: int = Field(
+        default=30,
+        alias="ACCESS_TOKEN_EXPIRE_MINUTES",
+        ge=15,
+        le=30,
+    )
+    refresh_session_expire_days: Literal[10] = Field(
+        default=10,
+        alias="REFRESH_SESSION_EXPIRE_DAYS",
+    )
+    refresh_cookie_name: str = Field(
+        default="torque_refresh_token",
+        alias="REFRESH_COOKIE_NAME",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9_-]+$",
+    )
+
     mysql_host: str = Field(default="127.0.0.1", alias="MYSQL_HOST")
     mysql_port: int = Field(default=3306, alias="MYSQL_PORT")
     mysql_database: str = Field(default="torque_db", alias="MYSQL_DATABASE")
@@ -66,6 +92,22 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"
+
+    @property
+    def refresh_cookie_secure(self) -> bool:
+        return not self.is_development
+
+    @property
+    def refresh_cookie_path(self) -> str:
+        return f"{self.api_v1_prefix}/auth"
+
+    @property
+    def access_token_expire_seconds(self) -> int:
+        return self.access_token_expire_minutes * 60
+
+    @property
+    def refresh_session_expire_seconds(self) -> int:
+        return self.refresh_session_expire_days * 24 * 60 * 60
 
     @property
     def mysql_url(self) -> str:

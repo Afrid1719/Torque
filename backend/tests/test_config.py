@@ -37,3 +37,24 @@ def test_cors_origins_can_be_read_from_comma_separated_environment_value() -> No
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+
+
+@pytest.mark.parametrize("minutes", [14, 31])
+def test_access_token_expiry_must_stay_within_mvp_range(minutes: int) -> None:
+    with pytest.raises(ValueError, match="ACCESS_TOKEN_EXPIRE_MINUTES"):
+        Settings(ACCESS_TOKEN_EXPIRE_MINUTES=minutes)
+
+
+def test_jwt_secret_must_be_at_least_32_characters() -> None:
+    with pytest.raises(ValueError, match="JWT_SECRET_KEY"):
+        Settings(JWT_SECRET_KEY=SecretStr("too-short"))
+
+
+def test_refresh_cookie_security_depends_on_environment() -> None:
+    development = Settings(APP_ENV="development")
+    testing = Settings(APP_ENV="testing")
+
+    assert development.refresh_cookie_secure is False
+    assert testing.refresh_cookie_secure is True
+    assert testing.refresh_cookie_path == "/api/v1/auth"
+    assert testing.refresh_session_expire_seconds == 864000
