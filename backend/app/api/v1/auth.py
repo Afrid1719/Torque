@@ -25,7 +25,9 @@ async def login(
 ) -> LoginResponse:
     user_agent = request.headers.get("user-agent")
     if user_agent is not None:
+        # Match the maximum length of UserSession.user_agent.
         user_agent = user_agent[:512]
+    # IPv6 addresses fit within the UserSession.ip_address column limit.
     ip_address = request.client.host[:45] if request.client is not None else None
 
     try:
