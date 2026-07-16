@@ -10,6 +10,7 @@ export type AuthContextValue = {
   user: CurrentUser | null
   hasRole: (allowedRoles: readonly RoleName[]) => boolean
   login: (credentials: LoginCredentials) => Promise<void>
+  logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

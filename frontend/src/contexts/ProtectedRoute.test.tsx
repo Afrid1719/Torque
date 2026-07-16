@@ -28,6 +28,7 @@ function contextValue(
     hasRole: (roles: readonly RoleName[]) =>
       user !== null && roles.includes(user.role.name),
     login: vi.fn(),
+    logout: vi.fn(),
     ...overrides,
   }
 }

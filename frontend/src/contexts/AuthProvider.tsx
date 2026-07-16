@@ -9,6 +9,7 @@ import {
 import {
   getCurrentUser,
   loginUser,
+  logoutUser,
   restoreAuthSession,
   type CurrentUser,
   type LoginCredentials,
@@ -58,9 +59,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser()
+    } catch {
+      // Local authentication state must be cleared even when logout cannot reach the API.
+    }
+
+    setAccessToken(null)
+    setUser(null)
+    setStatus('unauthenticated')
+  }, [])
+
   const value = useMemo(
-    () => ({ accessToken, status, user, hasRole, login }),
-    [accessToken, status, user, hasRole, login],
+    () => ({ accessToken, status, user, hasRole, login, logout }),
+    [accessToken, status, user, hasRole, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

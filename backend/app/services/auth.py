@@ -139,3 +139,26 @@ async def refresh_access_token(
         access_token=access_token.value,
         access_token_expires_in=settings.access_token_expire_seconds,
     )
+
+
+async def revoke_refresh_session(
+    session: AsyncSession,
+    raw_refresh_token: str,
+    revoked_at: datetime | None = None,
+) -> None:
+    revoked_at = revoked_at or datetime.now(UTC)
+    stored_session = await get_session_by_refresh_token_hash(
+        session,
+        hash_refresh_token(raw_refresh_token),
+    )
+
+    if stored_session is None or stored_session.revoked_at is not None:
+        return
+
+    stored_session.revoked_at = revoked_at
+
+    try:
+        await session.commit()
+    except SQLAlchemyError:
+        await session.rollback()
+        raise

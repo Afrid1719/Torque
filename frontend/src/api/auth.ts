@@ -53,6 +53,12 @@ export function refreshUserSession(): Promise<LoginResponse> {
   })
 }
 
+export function logoutUser(): Promise<void> {
+  return requestJson<void>('/api/v1/auth/logout', {
+    method: 'POST',
+  })
+}
+
 export function getCurrentUser(accessToken: string): Promise<CurrentUser> {
   return requestJson<CurrentUser>('/api/v1/auth/me', {
     headers: {
