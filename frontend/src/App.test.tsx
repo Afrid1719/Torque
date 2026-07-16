@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
@@ -71,6 +72,20 @@ describe('App login flow', () => {
       'MuiLink-underlineNone',
     )
     expect(await screen.findByText('Server connected')).toBeTruthy()
+  })
+
+  it('makes one health request when StrictMode remounts the login effect', async () => {
+    const fetchMock = routeFetch()
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
+
+    expect(await screen.findByText('Server connected')).toBeTruthy()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('validates both required fields before making a login request', async () => {
