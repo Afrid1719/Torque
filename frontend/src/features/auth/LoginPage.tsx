@@ -1,4 +1,4 @@
-import HelpOutlinedIcon from '@mui/icons-material/HelpOutlined'
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
 import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
@@ -287,7 +287,7 @@ export function LoginPage() {
                   sx={decorativeLinkStyles}
                   underline="none"
                 >
-                  <HelpOutlinedIcon fontSize="small" />
+                  <HelpOutlineOutlinedIcon fontSize="small" />
                   Support
                 </Link>
                 <Link
