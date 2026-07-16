@@ -146,7 +146,7 @@ export function LoginPage() {
               <Typography color="primary" component="h1" variant="h4">
                 TORQUE
               </Typography>
-              <Typography color="text.secondary" variant="overline">
+              <Typography sx={{ color: 'text.secondary' }} variant="overline">
                 Service Management System
               </Typography>
             </Stack>
@@ -271,7 +271,7 @@ export function LoginPage() {
             <Divider />
 
             <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Typography color="text.secondary" variant="subtitle1">
+              <Typography sx={{ color: 'text.secondary' }} variant="subtitle1">
                 Authorized Personnel Only
               </Typography>
               <Stack

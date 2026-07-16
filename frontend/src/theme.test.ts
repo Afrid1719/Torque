@@ -4,6 +4,7 @@ import { torqueTheme } from './theme'
 
 describe('TORQUE typography', () => {
   it('uses the supplied Steel and Azure type scale', () => {
+    expect(torqueTheme.typography.fontFamily).toBe('"Inter", sans-serif')
     expect(torqueTheme.typography.h4).toMatchObject({
       fontSize: '32px',
       fontWeight: 700,
@@ -39,5 +40,13 @@ describe('TORQUE typography', () => {
       fontWeight: 500,
       lineHeight: '14px',
     })
+  })
+
+  it('uses the supplied Steel and Azure content colors', () => {
+    expect(torqueTheme.palette.text.primary).toBe('#191c1e')
+    expect(torqueTheme.palette.text.secondary).toBe('#424754')
+    expect(torqueTheme.palette.divider).toBe('#c2c6d6')
+    expect(torqueTheme.palette.primary.main).toBe('#0058be')
+    expect(torqueTheme.palette.secondary.main).toBe('#515f74')
   })
 })

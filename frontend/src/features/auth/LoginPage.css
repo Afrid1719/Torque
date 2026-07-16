@@ -54,7 +54,7 @@
 
 .server-status {
   align-items: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -72,8 +72,8 @@
 }
 
 .server-status--connected .server-status__dot {
-  background: #00855b;
-  box-shadow: 0 0 0 4px rgba(0, 133, 91, 0.22);
+  background: #006947;
+  box-shadow: 0 0 0 4px rgba(0, 105, 71, 0.22);
 }
 
 .server-status--disconnected .server-status__dot {
