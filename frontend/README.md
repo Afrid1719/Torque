@@ -53,6 +53,7 @@ npm run format:check
 npm run lint
 npm run preview
 npm test
+npm run typecheck
 ```
 
 ## Notes
