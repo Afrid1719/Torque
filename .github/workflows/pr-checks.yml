@@ -88,6 +88,9 @@ jobs:
       - name: Check frontend formatting
         run: npm run format:check
 
+      - name: Run frontend type checking
+        run: npm run typecheck
+
       - name: Run frontend tests with coverage
         run: npm test
 

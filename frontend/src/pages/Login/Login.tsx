@@ -51,7 +51,7 @@ function preventDecorativeNavigation(event: MouseEvent<HTMLAnchorElement>) {
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { accessToken, login } = useAuth()
+  const { login, status } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -62,6 +62,8 @@ export function LoginPage() {
   const [serverState, setServerState] = useState<ServerState>('checking')
 
   useEffect(() => {
+    if (status !== 'unauthenticated') return
+
     let isCurrent = true
 
     getBackendHealth()
@@ -75,9 +77,11 @@ export function LoginPage() {
     return () => {
       isCurrent = false
     }
-  }, [])
+  }, [status])
 
-  if (accessToken) {
+  if (status === 'initializing') return null
+
+  if (status === 'authenticated') {
     return <Navigate to="/" replace />
   }
 

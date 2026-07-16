@@ -24,12 +24,44 @@ function loginResponse(): Response {
   })
 }
 
-function routeFetch(authResponse: Response = loginResponse()) {
+function currentUserResponse(
+  role:
+    'workshop_manager' | 'service_advisor' | 'mechanic' = 'workshop_manager',
+): Response {
+  return jsonResponse({
+    id: 1,
+    username: 'dev_manager',
+    role: {
+      id: 1,
+      name: role,
+      display_name: 'Workshop Manager',
+    },
+  })
+}
+
+type FetchResponses = {
+  login?: Response
+  me?: Response
+  refresh?: Response
+}
+
+function routeFetch(responses: FetchResponses = {}) {
   return vi.fn().mockImplementation((input: RequestInfo | URL) => {
     const url = String(input)
 
     if (url.endsWith('/api/v1/health')) return Promise.resolve(healthResponse())
-    if (url.endsWith('/api/v1/auth/login')) return Promise.resolve(authResponse)
+    if (url.endsWith('/api/v1/auth/refresh')) {
+      return Promise.resolve(
+        responses.refresh ??
+          jsonResponse({ detail: 'Could not refresh session.' }, 401),
+      )
+    }
+    if (url.endsWith('/api/v1/auth/login')) {
+      return Promise.resolve(responses.login ?? loginResponse())
+    }
+    if (url.endsWith('/api/v1/auth/me')) {
+      return Promise.resolve(responses.me ?? currentUserResponse())
+    }
 
     return Promise.reject(new Error(`Unexpected request: ${url}`))
   })
@@ -58,7 +90,7 @@ describe('App login flow', () => {
 
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'TORQUE' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'TORQUE' })).toBeTruthy()
     expect(
       screen.getByTestId('login-background').getAttribute('src'),
     ).toContain('workshop-login.webp')
@@ -88,7 +120,16 @@ describe('App login flow', () => {
     )
 
     expect(await screen.findByText('Server connected')).toBeTruthy()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith('/api/v1/health'),
+      ),
+    ).toHaveLength(1)
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith('/api/v1/auth/refresh'),
+      ),
+    ).toHaveLength(1)
   })
 
   it('validates both required fields before making a login request', async () => {
@@ -101,14 +142,20 @@ describe('App login flow', () => {
 
     expect(await screen.findByText('Username is required.')).toBeTruthy()
     expect(screen.getByText('Password is required.')).toBeTruthy()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith('/api/v1/auth/login'),
+      ),
+    ).toHaveLength(0)
   })
 
   it('toggles password visibility accessibly', async () => {
     vi.stubGlobal('fetch', routeFetch())
     render(<App />)
 
-    const password = screen.getByLabelText('Password') as HTMLInputElement
+    const password = (await screen.findByLabelText(
+      'Password',
+    )) as HTMLInputElement
     expect(password.type).toBe('password')
 
     fireEvent.click(screen.getByRole('button', { name: 'Show password' }))
@@ -144,15 +191,24 @@ describe('App login flow', () => {
         remember_me: true,
       }),
     })
+    const meCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).endsWith('/api/v1/auth/me'),
+    )
+    expect(meCall?.[1]).toMatchObject({
+      credentials: 'include',
+      headers: expect.objectContaining({
+        Authorization: 'Bearer signed-access-token',
+      }),
+    })
     expect(localStorageSpy).not.toHaveBeenCalled()
   })
 
   it('shows a meaningful backend authentication error', async () => {
     vi.stubGlobal(
       'fetch',
-      routeFetch(
-        jsonResponse({ detail: 'Invalid username or password.' }, 401),
-      ),
+      routeFetch({
+        login: jsonResponse({ detail: 'Invalid username or password.' }, 401),
+      }),
     )
 
     render(<App />)
@@ -172,6 +228,14 @@ describe('App login flow', () => {
       const url = String(input)
       if (url.endsWith('/api/v1/health'))
         return Promise.resolve(healthResponse())
+      if (url.endsWith('/api/v1/auth/refresh')) {
+        return Promise.resolve(
+          jsonResponse({ detail: 'Could not refresh session.' }, 401),
+        )
+      }
+      if (url.endsWith('/api/v1/auth/me')) {
+        return Promise.resolve(currentUserResponse())
+      }
       return new Promise<Response>((resolve) => {
         resolveLogin = resolve
       })
@@ -213,5 +277,50 @@ describe('App login flow', () => {
 
     expect(await screen.findByLabelText('Username')).toBeTruthy()
     await waitFor(() => expect(window.location.pathname).toBe('/login'))
+  })
+
+  it('restores a remembered session and current role before showing a protected route', async () => {
+    window.history.replaceState({}, '', '/')
+    const fetchMock = routeFetch({ refresh: loginResponse() })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeTruthy()
+    expect(screen.queryByLabelText('Username')).toBeNull()
+
+    const refreshCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).endsWith('/api/v1/auth/refresh'),
+    )
+    expect(refreshCall?.[1]).toMatchObject({
+      method: 'POST',
+      credentials: 'include',
+    })
+    const meCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).endsWith('/api/v1/auth/me'),
+    )
+    expect(meCall?.[1]).toMatchObject({
+      headers: expect.objectContaining({
+        Authorization: 'Bearer signed-access-token',
+      }),
+    })
+  })
+
+  it('returns to login when the refreshed access token cannot load the current user', async () => {
+    window.history.replaceState({}, '', '/')
+    vi.stubGlobal(
+      'fetch',
+      routeFetch({
+        refresh: loginResponse(),
+        me: jsonResponse({ detail: 'Could not validate credentials.' }, 401),
+      }),
+    )
+
+    render(<App />)
+
+    expect(await screen.findByLabelText('Username')).toBeTruthy()
+    expect(window.location.pathname).toBe('/login')
   })
 })
