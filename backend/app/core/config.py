@@ -39,6 +39,12 @@ class Settings(BaseSettings):
         ge=10,
         le=10,
     )
+    remembered_refresh_session_expire_days: int = Field(
+        default=30,
+        alias="REMEMBERED_REFRESH_SESSION_EXPIRE_DAYS",
+        ge=30,
+        le=30,
+    )
     refresh_cookie_name: str = Field(
         default="torque_refresh_token",
         alias="REFRESH_COOKIE_NAME",
@@ -110,6 +116,10 @@ class Settings(BaseSettings):
     @property
     def refresh_session_expire_seconds(self) -> int:
         return self.refresh_session_expire_days * 24 * 60 * 60
+
+    @property
+    def remembered_refresh_session_expire_seconds(self) -> int:
+        return self.remembered_refresh_session_expire_days * 24 * 60 * 60
 
     @property
     def mysql_url(self) -> str:

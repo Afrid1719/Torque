@@ -14,6 +14,7 @@ class LoginRequest(BaseModel):
 
     username: Username
     password: Password
+    remember_me: bool = False
 
 
 class LoginResponse(BaseModel):

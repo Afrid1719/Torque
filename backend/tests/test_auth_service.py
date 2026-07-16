@@ -87,6 +87,30 @@ def test_authenticate_user_creates_access_token_and_hashed_session(
     assert result.access_token_expires_in == 15 * 60
 
 
+def test_authenticate_user_creates_30_day_remembered_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = build_session()
+    monkeypatch.setattr(
+        auth, "get_user_by_username", AsyncMock(return_value=build_user())
+    )
+    authenticated_at = datetime.now(UTC).replace(microsecond=0)
+
+    asyncio.run(
+        authenticate_user(
+            session=session,
+            username="manager",
+            plain_password=TEST_PASSWORD,
+            settings=build_settings(),
+            remember_me=True,
+            authenticated_at=authenticated_at,
+        )
+    )
+
+    stored_session = session.add.call_args.args[0]
+    assert stored_session.expires_at == authenticated_at + timedelta(days=30)
+
+
 @pytest.mark.parametrize(
     ("user", "password"),
     [

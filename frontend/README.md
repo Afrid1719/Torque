@@ -36,7 +36,9 @@ npm run dev
 
 Vite prints the local development URL in the terminal, usually `http://localhost:5173/`.
 
-The temporary system-status page is available at the frontend root URL.
+Unauthenticated users are redirected to `/login`. Successful login redirects to
+the Dashboard entry point at `/`. The login page reports whether it can reach
+the configured backend.
 
 ## Available Scripts
 

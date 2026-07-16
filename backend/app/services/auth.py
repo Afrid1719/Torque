@@ -28,6 +28,7 @@ async def authenticate_user(
     username: str,
     plain_password: str,
     settings: Settings,
+    remember_me: bool = False,
     user_agent: str | None = None,
     ip_address: str | None = None,
     authenticated_at: datetime | None = None,
@@ -47,8 +48,13 @@ async def authenticate_user(
         issued_at=authenticated_at,
     )
     refresh_token = create_refresh_token()
+    refresh_session_expire_days = (
+        settings.remembered_refresh_session_expire_days
+        if remember_me
+        else settings.refresh_session_expire_days
+    )
     refresh_session_expires_at = authenticated_at + timedelta(
-        days=settings.refresh_session_expire_days
+        days=refresh_session_expire_days
     )
 
     session.add(

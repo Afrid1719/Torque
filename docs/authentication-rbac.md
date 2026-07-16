@@ -60,8 +60,8 @@ The planned authentication flow is:
 1. The user submits a username and password from the React login form over HTTPS to the planned `/api/v1/auth/login` endpoint.
 2. FastAPI normalizes the username, loads the corresponding active user, and verifies the submitted password against the stored password hash.
 3. Invalid credentials and inactive accounts receive the same generic authentication failure response so that account existence is not disclosed.
-4. After successful verification, the backend creates a persistent refresh session with a fixed 10-day expiry. Only a hash of its opaque refresh token or session identifier is stored server-side.
-5. The backend returns a signed, short-lived JWT access token and sets the raw refresh token in a 10-day HttpOnly cookie.
+4. After successful verification, the backend creates a refresh session. It expires after 10 days by default or after 30 days when the user selects Remember this device. Only a hash of its opaque refresh token or session identifier is stored server-side.
+5. The backend returns a signed, short-lived JWT access token and sets the raw refresh token in an HttpOnly cookie. The default cookie lasts for the browser session; the remembered cookie persists for 30 days.
 6. The frontend keeps the access token in application memory and sends it to protected API endpoints as `Authorization: Bearer <token>`.
 7. For each protected request, the backend validates the access token, resolves the current active user, and loads the user's current role from backend-controlled data before applying role and resource authorization rules.
 8. When the application starts without an in-memory access token, the frontend calls `/api/v1/auth/refresh`. A valid, unexpired, and unrevoked refresh session produces a new access token and restores the authenticated user context.
@@ -75,7 +75,7 @@ These endpoints describe the planned contract under the `/api/v1` prefix. They a
 
 | Method and path | Authentication | Planned behavior |
 | --- | --- | --- |
-| `POST /api/v1/auth/login` | Username and password | Verifies credentials and active status, creates a 10-day refresh session, returns an access token, and sets the HttpOnly refresh cookie. |
+| `POST /api/v1/auth/login` | Username, password, and optional `remember_me` flag | Verifies credentials and active status, creates a 10-day default or 30-day remembered refresh session, returns an access token, and sets the HttpOnly refresh cookie. |
 | `POST /api/v1/auth/refresh` | HttpOnly refresh cookie | Validates the cookie and server-side session, then returns a new short-lived access token. |
 | `POST /api/v1/auth/logout` | HttpOnly refresh cookie | Revokes the active refresh session and clears the refresh cookie. The operation should be idempotent. |
 | `GET /api/v1/auth/me` | Bearer access token | Returns the current authenticated user's frontend-safe identity and role data. It never returns password or session secrets. |
@@ -84,7 +84,7 @@ TORQUE has no public self-registration endpoint in the MVP. Development-only use
 
 ## Token and Session Strategy
 
-The access token and refresh session have different responsibilities and lifetimes. The access token authorizes normal API requests for a short period. The persistent refresh session restores the login without giving a browser a 10-day access token.
+The access token and refresh session have different responsibilities and lifetimes. The access token authorizes normal API requests for a short period. The refresh session restores the login without giving a browser a long-lived access token.
 
 ### Access Token
 
@@ -92,26 +92,26 @@ The MVP uses a short-lived JWT bearer access token with these rules:
 
 - Tokens are signed with `HS256`, suitable for the single TORQUE backend that both issues and validates tokens.
 - The signing secret must contain at least 256 bits of cryptographically secure random data, be supplied through backend environment configuration, and never be committed or exposed to the frontend.
-- Access tokens expire after 30 minutes by default. The backend setting may be configured between 15 and 30 minutes and must never use the 10-day refresh-session lifetime.
+- Access tokens expire after 30 minutes by default. The backend setting may be configured between 15 and 30 minutes and must never use a refresh-session lifetime.
 - Required claims are `sub` for the immutable user identifier, `iat` for issue time, `exp` for expiry, and `jti` for a unique token identifier.
 - The token may include the user's role for frontend presentation, but the backend must use backend-controlled current user data for authorization decisions.
 - Tokens are accepted only after signature, algorithm, required-claim, and expiry validation succeeds.
 - Access tokens are held in React application memory. They are not stored in `localStorage` or browser-readable cookies.
 - Access tokens are sent only in the `Authorization: Bearer <token>` header for normal protected API requests.
 
-### Persistent Refresh Session
+### Refresh Session
 
-Successful login creates a server-side refresh session with a fixed expiry 10 days after login. This is a 10-day persistent refresh session, not a 10-day access token.
+Successful login creates a server-side refresh session. The default session expires 10 days after login and uses a browser-session cookie. Selecting Remember this device creates a persistent refresh session and cookie that expire after 30 days. Neither option changes the short access-token lifetime.
 
 - The backend generates a cryptographically secure opaque refresh token or session identifier.
 - The raw value is returned only as an HttpOnly cookie and is never included in a JSON response.
-- The cookie expires after 10 days and persists across browser and tab closure.
+- The default cookie has no `Expires` or `Max-Age` attribute and ends with the browser session. A remembered cookie has a 30-day `Expires` and `Max-Age` value and persists across browser and tab closure.
 - The cookie uses `Secure` outside local development, `SameSite=Lax`, and a path limited to `/api/v1/auth`. A host-only cookie is preferred unless a deployment requires a broader domain.
 - JavaScript cannot read the cookie. Requests to login, refresh, and logout must include credentials so the browser can receive or send it.
 - The refresh cookie is used only by `/api/v1/auth/refresh` and `/api/v1/auth/logout`; it is not an authentication credential for normal business endpoints.
 - The database stores only a cryptographic hash of the refresh token or session identifier. The backend hashes the presented value before locating or comparing the session record.
 - Refresh succeeds only when the hash matches an existing session, the session is unexpired and unrevoked, and the related user is still active.
-- A successful refresh updates `last_used_at` and issues a new access token without extending the session beyond its original 10-day expiry.
+- A successful refresh updates `last_used_at` and issues a new access token without extending the session beyond its original 10-day or 30-day expiry.
 - Logout sets `revoked_at`, clears the cookie with matching cookie attributes, and prevents subsequent refresh from that session.
 - Invalid, expired, or revoked refresh sessions return a controlled `401 Unauthorized` response and clear the unusable cookie.
 
@@ -126,7 +126,7 @@ A future SQLAlchemy model and Alembic migration will introduce a table such as `
 | `id` | Internal immutable session identifier. |
 | `user_id` | Foreign key to the authenticated user. |
 | `refresh_token_hash` or `session_token_hash` | One-way hash used to validate the cookie value; never the raw token. |
-| `expires_at` | Fixed expiry timestamp 10 days after login. |
+| `expires_at` | Fixed expiry timestamp 10 days after login by default or 30 days after a remembered login. |
 | `revoked_at` | Nullable timestamp set when the session is revoked. |
 | `created_at` | Session creation timestamp. |
 | `last_used_at` | Timestamp of the latest successful refresh. |
@@ -163,7 +163,7 @@ Backend enforcement must follow these principles:
 - Authorization rules are centralized and reusable so equivalent operations receive equivalent decisions.
 - A missing rule results in denial.
 - OpenAPI documentation should identify bearer-authenticated endpoints when authentication is implemented.
-- Login creates a hashed server-side refresh-session record with a fixed 10-day expiry.
+- Login creates a hashed server-side refresh-session record with a fixed 10-day default or 30-day remembered expiry.
 - Refresh verifies the session hash, expiry, revocation status, and current user active status before issuing a new access token.
 - Logout revokes the matching server-side session and clears the refresh cookie.
 - Raw refresh tokens, access tokens, password hashes, session hashes, and signing secrets are excluded from API responses and logs.
@@ -219,7 +219,7 @@ The React application will maintain authentication state in a central auth provi
 - On application load, if no access token exists in memory, the auth provider calls `POST /api/v1/auth/refresh` with credentials included.
 - If refresh succeeds, the frontend stores the new access token in memory and calls `GET /api/v1/auth/me` to load the current user.
 - If initial refresh fails, the frontend clears authentication state and redirects to login.
-- Refreshing or closing the browser removes the in-memory access token, but the HttpOnly refresh cookie restores the session until its fixed 10-day expiry or server-side revocation.
+- Refreshing removes the in-memory access token, but an available HttpOnly refresh cookie restores the session until its fixed expiry or server-side revocation. Closing the browser ends a non-remembered cookie; a remembered cookie persists for up to 30 days.
 - While initial refresh and current-user loading are in progress, protected content is not rendered.
 - An unauthenticated user who opens a protected route is redirected to the login page. The intended path may be retained for navigation after successful login.
 - An authenticated user who opens a route outside the user's role is shown a controlled forbidden page and remains signed in.
@@ -276,7 +276,7 @@ Future authentication and RBAC implementation stories should be reviewed against
 - Resource-level rules are enforced by the backend, especially mechanic job-card assignments.
 - The frontend handles unauthenticated and forbidden navigation without acting as the security boundary.
 - Access JWT validation, 15-to-30-minute expiry, secret handling, and password hashing follow this document.
-- The 10-day persistent refresh session uses an HttpOnly cookie and a hashed server-side token or identifier.
+- Refresh sessions use an HttpOnly cookie and a hashed server-side token or identifier. The default browser-session cookie is backed by a 10-day server expiry; remembered sessions persist for 30 days.
 - Application startup can restore the session through refresh without storing the access token in persistent browser storage.
 - Logout revokes the server-side session and clears both cookie and in-memory authentication state.
 - `401` and `403` responses match the documented failure behavior.

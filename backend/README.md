@@ -112,9 +112,9 @@ handled separately from the hashing utility.
 ## Login Configuration
 
 The login endpoint is available at `POST /api/v1/auth/login`. Successful login
-returns a short-lived JWT access token and sets the persistent refresh token in
-an HttpOnly cookie. The raw refresh token is never returned in JSON, and only
-its hash is stored in `user_sessions`.
+returns a short-lived JWT access token and sets the refresh token in an
+HttpOnly cookie. The raw refresh token is never returned in JSON, and only its
+hash is stored in `user_sessions`.
 
 Configure authentication through `backend/.env`:
 
@@ -123,11 +123,14 @@ JWT_SECRET_KEY=replace_with_at_least_32_random_characters
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_SESSION_EXPIRE_DAYS=10
+REMEMBERED_REFRESH_SESSION_EXPIRE_DAYS=30
 REFRESH_COOKIE_NAME=torque_refresh_token
 ```
 
-The access-token lifetime must remain between 15 and 30 minutes. Refresh
-sessions have a fixed 10-day lifetime. The refresh cookie is marked `Secure`
+The access-token lifetime must remain between 15 and 30 minutes. By default, a
+refresh session expires after 10 days and its browser-session cookie is removed
+when the browser session ends. Sending `remember_me: true` creates a persistent
+30-day refresh session and cookie. The refresh cookie is marked `Secure`
 outside local development.
 
 Authenticated clients can send the access token as `Authorization: Bearer
