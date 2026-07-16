@@ -134,6 +134,39 @@ Authenticated clients can send the access token as `Authorization: Bearer
 <token>` to `GET /api/v1/auth/me`. The endpoint returns the current user's ID,
 username, and current database-backed role information.
 
+## Development Users
+
+TORQUE provides an explicit local-only command that creates or updates one
+sample user for each supported role. It refuses to run unless
+`APP_ENV=development` and is never called during application startup.
+
+Generate three unique local passwords of at least 12 characters:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(18))"
+```
+
+Run the command three times and place the generated values only in the local
+`backend/.env` file under these names:
+
+```env
+DEV_SEED_WORKSHOP_MANAGER_PASSWORD=
+DEV_SEED_SERVICE_ADVISOR_PASSWORD=
+DEV_SEED_MECHANIC_PASSWORD=
+```
+
+Apply migrations, then run the seed command from `backend`:
+
+```bash
+alembic upgrade head
+python -m app.scripts.seed_dev_users
+```
+
+The idempotent command creates or updates `dev_manager`, `dev_advisor`, and
+`dev_mechanic`. Passwords are Argon2id hashes in MySQL; raw values are never
+printed or stored by the seed process. Do not use these accounts or seed
+variables outside local development.
+
 ## Setup
 
 Create and activate a virtual environment:
