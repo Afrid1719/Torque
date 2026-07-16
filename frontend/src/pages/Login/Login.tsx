@@ -8,7 +8,6 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import {
   Alert,
-  Box,
   Button,
   Checkbox,
   CircularProgress,
@@ -16,8 +15,6 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
-  Link,
-  Paper,
   Stack,
   TextField,
   Tooltip,
@@ -26,28 +23,26 @@ import {
 import { useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 
-import { getBackendHealth } from '../../api/health'
 import { ApiError } from '../../api/client'
-import serviceBayImage from '../../assets/service-bay.jpg'
-import { useAuth } from '../../auth/useAuth'
-import './LoginPage.css'
-
-type ServerState = 'checking' | 'connected' | 'disconnected'
+import { getBackendHealth } from '../../api/health'
+import workshopImage from '../../assets/workshop-login.webp'
+import { useAuth } from '../../hooks/useAuth'
+import {
+  BrandMark,
+  DecorativeLink,
+  LoginContent,
+  LoginOverlay,
+  LoginPageRoot,
+  LoginPanel,
+  ServerStatus,
+  ServerStatusDot,
+  type ServerState,
+} from './Login.styles'
 
 type FieldErrors = {
   username?: string
   password?: string
 }
-
-const decorativeLinkStyles = {
-  fontSize: '12px',
-  fontWeight: 600,
-  lineHeight: '16px',
-  '&:hover': {
-    color: 'primary.main',
-    textDecoration: 'none',
-  },
-} as const
 
 function preventDecorativeNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault()
@@ -126,23 +121,19 @@ export function LoginPage() {
         : 'Server unavailable'
 
   return (
-    <Box
-      component="main"
-      className="login-page"
-      sx={{ backgroundImage: `url(${serviceBayImage})` }}
-    >
-      <Box className="login-page__overlay" />
+    <LoginPageRoot $backgroundImage={workshopImage}>
+      <LoginOverlay />
 
-      <Stack className="login-page__content" spacing={2.5}>
-        <Paper className="login-panel" elevation={18}>
+      <LoginContent spacing={2.5}>
+        <LoginPanel elevation={18}>
           <Stack spacing={3}>
             <Stack
               spacing={0.75}
               sx={{ alignItems: 'center', textAlign: 'center' }}
             >
-              <Box className="login-panel__brand-mark">
+              <BrandMark>
                 <PrecisionManufacturingIcon aria-hidden fontSize="large" />
-              </Box>
+              </BrandMark>
               <Typography color="primary" component="h1" variant="h4">
                 TORQUE
               </Typography>
@@ -279,44 +270,36 @@ export function LoginPage() {
                 divider={<Divider flexItem orientation="vertical" />}
                 spacing={2}
               >
-                <Link
-                  className="login-panel__decorative-link"
+                <DecorativeLink
                   color="text.secondary"
                   href="#"
                   onClick={preventDecorativeNavigation}
-                  sx={decorativeLinkStyles}
                   underline="none"
                 >
                   <HelpOutlineOutlinedIcon fontSize="small" />
                   Support
-                </Link>
-                <Link
-                  className="login-panel__decorative-link"
+                </DecorativeLink>
+                <DecorativeLink
                   color="text.secondary"
                   href="#"
                   onClick={preventDecorativeNavigation}
-                  sx={decorativeLinkStyles}
                   underline="none"
                 >
                   <ShieldOutlinedIcon fontSize="small" />
                   Security
-                </Link>
+                </DecorativeLink>
               </Stack>
             </Stack>
           </Stack>
-        </Paper>
+        </LoginPanel>
 
-        <Box
-          aria-live="polite"
-          className={`server-status server-status--${serverState}`}
-          role="status"
-        >
-          <span className="server-status__dot" />
+        <ServerStatus $state={serverState} aria-live="polite" role="status">
+          <ServerStatusDot $state={serverState} />
           <Typography component="span" variant="caption">
             {serverLabel}
           </Typography>
-        </Box>
-      </Stack>
-    </Box>
+        </ServerStatus>
+      </LoginContent>
+    </LoginPageRoot>
   )
 }
