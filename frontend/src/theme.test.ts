@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { torqueTheme } from './theme'
+import { torqueTheme } from '@app/theme'
 
 describe('TORQUE typography', () => {
   it('uses the supplied Steel and Azure type scale', () => {

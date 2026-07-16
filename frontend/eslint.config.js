@@ -20,6 +20,17 @@ export default defineConfig([
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['./*', '../*'],
+              message: 'Use the @app alias for frontend source imports.',
+            },
+          ],
+        },
+      ],
     },
   },
 ])

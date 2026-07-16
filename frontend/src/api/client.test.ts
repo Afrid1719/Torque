@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiError, getJson } from './client'
+import { ApiError, getJson, requestJson } from '@app/api/client'
 
 describe('API errors', () => {
   afterEach(() => {
@@ -57,5 +57,22 @@ describe('API errors', () => {
       code: 'network_error',
       message: 'Unable to connect to the server. Please try again.',
     })
+  })
+
+  it('handles successful no-content responses without parsing JSON', async () => {
+    const json = vi.fn()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json,
+      }),
+    )
+
+    await expect(
+      requestJson<void>('/auth/logout', { method: 'POST' }),
+    ).resolves.toBeUndefined()
+    expect(json).not.toHaveBeenCalled()
   })
 })

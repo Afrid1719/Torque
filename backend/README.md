@@ -137,6 +137,11 @@ Authenticated clients can send the access token as `Authorization: Bearer
 <token>` to `GET /api/v1/auth/me`. The endpoint returns the current user's ID,
 username, and current database-backed role information.
 
+Clients log out with `POST /api/v1/auth/logout`. The endpoint revokes the
+matching server-side refresh session when present, clears the refresh cookie,
+and returns HTTP 204. Logout is idempotent, but still requires an allowed
+frontend `Origin` because the refresh credential is cookie-backed.
+
 ## Development Users
 
 TORQUE provides an explicit local-only command that creates or updates one

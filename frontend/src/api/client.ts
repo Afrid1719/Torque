@@ -106,6 +106,10 @@ export async function requestJson<TResponse>(
     throw await ApiError.fromResponse(response)
   }
 
+  if (response.status === 204) {
+    return undefined as TResponse
+  }
+
   return response.json() as Promise<TResponse>
 }
 

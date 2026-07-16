@@ -18,6 +18,7 @@ from app.services.auth import (
     InvalidRefreshSessionError,
     authenticate_user,
     refresh_access_token,
+    revoke_refresh_session,
 )
 
 TEST_PASSWORD = "login-service-test-password-123"
@@ -276,6 +277,91 @@ def test_refresh_access_token_rolls_back_last_used_write_failure(
                 session=session,
                 raw_refresh_token="raw-refresh-token",
                 settings=build_settings(),
+            )
+        )
+
+    session.rollback.assert_awaited_once()
+
+
+def test_revoke_refresh_session_sets_revoked_timestamp(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = build_session()
+    revoked_at = datetime.now(UTC).replace(microsecond=0)
+    stored_session = build_refresh_session(expires_at=revoked_at + timedelta(days=1))
+    lookup = AsyncMock(return_value=stored_session)
+    monkeypatch.setattr(auth, "get_session_by_refresh_token_hash", lookup)
+
+    asyncio.run(
+        revoke_refresh_session(
+            session=session,
+            raw_refresh_token="raw-refresh-token",
+            revoked_at=revoked_at,
+        )
+    )
+
+    lookup.assert_awaited_once_with(
+        session,
+        hash_refresh_token("raw-refresh-token"),
+    )
+    assert stored_session.revoked_at == revoked_at
+    session.commit.assert_awaited_once()
+    session.rollback.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "stored_session",
+    [
+        None,
+        build_refresh_session(
+            expires_at=datetime.now(UTC) + timedelta(days=1),
+            revoked_at=datetime.now(UTC),
+        ),
+    ],
+    ids=["missing", "already-revoked"],
+)
+def test_revoke_refresh_session_is_idempotent(
+    monkeypatch: pytest.MonkeyPatch,
+    stored_session: UserSession | None,
+) -> None:
+    session = build_session()
+    monkeypatch.setattr(
+        auth,
+        "get_session_by_refresh_token_hash",
+        AsyncMock(return_value=stored_session),
+    )
+
+    asyncio.run(
+        revoke_refresh_session(
+            session=session,
+            raw_refresh_token="raw-refresh-token",
+        )
+    )
+
+    session.commit.assert_not_awaited()
+    session.rollback.assert_not_awaited()
+
+
+def test_revoke_refresh_session_rolls_back_write_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = build_session()
+    session.commit.side_effect = SQLAlchemyError("database unavailable")
+    monkeypatch.setattr(
+        auth,
+        "get_session_by_refresh_token_hash",
+        AsyncMock(
+            return_value=build_refresh_session(
+                expires_at=datetime.now(UTC) + timedelta(days=1)
+            )
+        ),
+    )
+
+    with pytest.raises(SQLAlchemyError):
+        asyncio.run(
+            revoke_refresh_session(
+                session=session,
+                raw_refresh_token="raw-refresh-token",
             )
         )
 

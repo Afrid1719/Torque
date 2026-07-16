@@ -1,4 +1,5 @@
-import { getJson } from './client'
+import { getJson } from '@app/api/client'
+import { API_V1_PREFIX } from '@app/api/constants'
 
 export type BackendHealthResponse = {
   status: string
@@ -13,7 +14,7 @@ export function getBackendHealth(): Promise<BackendHealthResponse> {
   }
 
   pendingHealthRequest = getJson<BackendHealthResponse>(
-    '/api/v1/health',
+    `${API_V1_PREFIX}/health`,
   ).finally(() => {
     pendingHealthRequest = null
   })

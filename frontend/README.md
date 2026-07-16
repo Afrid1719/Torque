@@ -43,6 +43,17 @@ user and role before redirecting to the Dashboard. Frontend role guards improve
 navigation and messaging, but backend authorization remains authoritative for
 every protected API operation.
 
+Authenticated pages use a shared application shell with the responsive TORQUE
+sidebar and header. The shell provides routes for Dashboard (`/`), Customers,
+Vehicles, Job Cards, Inventory, Billing, Reports, and Settings. Until those
+feature pages are implemented, each route intentionally renders only its page
+title.
+
+Selecting Logout asks the backend to revoke the active refresh session, then
+clears the access token and user state from memory and redirects to `/login`.
+The local authentication state is still cleared when the backend request fails,
+so a network problem cannot leave protected frontend content visible.
+
 ## Available Scripts
 
 ```bash

@@ -3,8 +3,8 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { CurrentUser, RoleName } from '@app/api/auth'
-import { AuthContext, type AuthContextValue } from './AuthContext'
-import { ProtectedRoute } from './ProtectedRoute'
+import { AuthContext, type AuthContextValue } from '@app/contexts/AuthContext'
+import { ProtectedRoute } from '@app/contexts/ProtectedRoute'
 
 const workshopManager: CurrentUser = {
   id: 1,
@@ -28,6 +28,7 @@ function contextValue(
     hasRole: (roles: readonly RoleName[]) =>
       user !== null && roles.includes(user.role.name),
     login: vi.fn(),
+    logout: vi.fn(),
     ...overrides,
   }
 }

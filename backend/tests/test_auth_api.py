@@ -234,3 +234,62 @@ def test_refresh_rejects_missing_or_disallowed_origin(
     assert response.status_code == 403
     assert response.json() == {"detail": "Request origin is not allowed."}
     refresh.assert_not_awaited()
+
+
+def test_logout_revokes_session_and_clears_refresh_cookie(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    revoke = AsyncMock()
+    monkeypatch.setattr(auth_api, "revoke_refresh_session", revoke)
+    client.cookies.set("torque_refresh_token", "raw-refresh-token")
+
+    response = client.post(
+        "/api/v1/auth/logout",
+        headers={"Origin": "http://localhost:5173"},
+    )
+
+    assert response.status_code == 204
+    assert response.content == b""
+    assert revoke.await_args.kwargs["raw_refresh_token"] == "raw-refresh-token"
+    cookie = response.headers["set-cookie"]
+    assert 'torque_refresh_token=""' in cookie
+    assert "Max-Age=0" in cookie
+    assert "Path=/api/v1/auth" in cookie
+    assert "HttpOnly" in cookie
+    assert "Secure" in cookie
+
+
+def test_logout_without_cookie_remains_idempotent_and_clears_cookie(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    revoke = AsyncMock()
+    monkeypatch.setattr(auth_api, "revoke_refresh_session", revoke)
+
+    response = client.post(
+        "/api/v1/auth/logout",
+        headers={"Origin": "http://localhost:5173"},
+    )
+
+    assert response.status_code == 204
+    revoke.assert_not_awaited()
+    assert "Max-Age=0" in response.headers["set-cookie"]
+
+
+@pytest.mark.parametrize("origin", [None, "https://untrusted.example"])
+def test_logout_rejects_missing_or_disallowed_origin(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    origin: str | None,
+) -> None:
+    revoke = AsyncMock()
+    monkeypatch.setattr(auth_api, "revoke_refresh_session", revoke)
+    client.cookies.set("torque_refresh_token", "raw-refresh-token")
+    headers = {"Origin": origin} if origin is not None else {}
+
+    response = client.post("/api/v1/auth/logout", headers=headers)
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Request origin is not allowed."}
+    revoke.assert_not_awaited()

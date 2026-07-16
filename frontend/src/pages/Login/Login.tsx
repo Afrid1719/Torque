@@ -38,7 +38,7 @@ import {
   ServerStatus,
   ServerStatusDot,
   type ServerState,
-} from './Login.styles'
+} from '@app/pages/Login/Login.styles'
 
 type FieldErrors = {
   username?: string

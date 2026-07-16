@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import App from './App'
+import App from '@app/App'
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return {
@@ -22,6 +22,14 @@ function loginResponse(): Response {
     token_type: 'bearer',
     expires_in: 1800,
   })
+}
+
+function noContentResponse(): Response {
+  return {
+    ok: true,
+    status: 204,
+    json: vi.fn(),
+  } as unknown as Response
 }
 
 function currentUserResponse(
@@ -61,6 +69,9 @@ function routeFetch(responses: FetchResponses = {}) {
     }
     if (url.endsWith('/api/v1/auth/me')) {
       return Promise.resolve(responses.me ?? currentUserResponse())
+    }
+    if (url.endsWith('/api/v1/auth/logout')) {
+      return Promise.resolve(noContentResponse())
     }
 
     return Promise.reject(new Error(`Unexpected request: ${url}`))
@@ -322,5 +333,49 @@ describe('App login flow', () => {
 
     expect(await screen.findByLabelText('Username')).toBeTruthy()
     expect(window.location.pathname).toBe('/login')
+  })
+
+  it('renders the authenticated header and sidebar with routed placeholders', async () => {
+    window.history.replaceState({}, '', '/')
+    vi.stubGlobal('fetch', routeFetch({ refresh: loginResponse() }))
+
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeTruthy()
+    expect(screen.getByText('Dev Manager')).toBeTruthy()
+    expect(screen.getByText('Workshop Manager')).toBeTruthy()
+    expect(screen.getByPlaceholderText(/Search registration/)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('link', { name: 'Vehicles' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Vehicles' }),
+    ).toBeTruthy()
+    expect(window.location.pathname).toBe('/vehicles')
+  })
+
+  it('logs out from the sidebar and prevents stale authenticated content', async () => {
+    window.history.replaceState({}, '', '/')
+    const fetchMock = routeFetch({ refresh: loginResponse() })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<App />)
+
+    expect(await screen.findByText('Dev Manager')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Logout' }))
+
+    expect(await screen.findByLabelText('Username')).toBeTruthy()
+    expect(window.location.pathname).toBe('/login')
+    expect(screen.queryByText('Dev Manager')).toBeNull()
+
+    const logoutCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).endsWith('/api/v1/auth/logout'),
+    )
+    expect(logoutCall?.[1]).toMatchObject({
+      method: 'POST',
+      credentials: 'include',
+    })
   })
 })

@@ -12,6 +12,7 @@ from app.services.auth import (
     InvalidRefreshSessionError,
     authenticate_user,
     refresh_access_token,
+    revoke_refresh_session,
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -140,4 +141,33 @@ async def refresh(
     return LoginResponse(
         access_token=result.access_token,
         expires_in=result.access_token_expires_in,
+    )
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={status.HTTP_403_FORBIDDEN: {"description": "Disallowed request origin"}},
+)
+async def logout(
+    request: Request,
+    response: Response,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> None:
+    _validate_cookie_request_origin(request, settings)
+    raw_refresh_token = request.cookies.get(settings.refresh_cookie_name)
+
+    if raw_refresh_token is not None:
+        await revoke_refresh_session(
+            session=session,
+            raw_refresh_token=raw_refresh_token,
+        )
+
+    response.delete_cookie(
+        key=settings.refresh_cookie_name,
+        path=settings.refresh_cookie_path,
+        secure=settings.refresh_cookie_secure,
+        httponly=True,
+        samesite="lax",
     )
