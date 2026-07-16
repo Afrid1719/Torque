@@ -30,6 +30,7 @@ import { useAuth } from '@app/hooks/useAuth'
 import {
   BrandMark,
   DecorativeLink,
+  LoginBackground,
   LoginContent,
   LoginOverlay,
   LoginPageRoot,
@@ -121,7 +122,13 @@ export function LoginPage() {
         : 'Server unavailable'
 
   return (
-    <LoginPageRoot $backgroundImage={workshopImage}>
+    <LoginPageRoot>
+      <LoginBackground
+        alt=""
+        aria-hidden="true"
+        data-testid="login-background"
+        src={workshopImage}
+      />
       <LoginOverlay />
 
       <LoginContent spacing={2.5}>

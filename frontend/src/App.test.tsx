@@ -59,6 +59,9 @@ describe('App login flow', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: 'TORQUE' })).toBeTruthy()
+    expect(
+      screen.getByTestId('login-background').getAttribute('src'),
+    ).toContain('workshop-login.webp')
     expect(screen.getByLabelText('Username')).toBeTruthy()
     expect(screen.getByLabelText('Password')).toBeTruthy()
     expect(

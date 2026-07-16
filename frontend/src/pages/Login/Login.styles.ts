@@ -3,15 +3,9 @@ import { alpha, styled } from '@mui/material/styles'
 
 export type ServerState = 'checking' | 'connected' | 'disconnected'
 
-export const LoginPageRoot = styled('main', {
-  shouldForwardProp: (prop) => prop !== '$backgroundImage',
-})<{ $backgroundImage: string }>(({ $backgroundImage, theme }) => ({
+export const LoginPageRoot = styled('main')(({ theme }) => ({
   alignItems: 'center',
   backgroundColor: theme.palette.secondary.main,
-  backgroundImage: `url(${$backgroundImage})`,
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  backgroundSize: 'cover',
   display: 'flex',
   justifyContent: 'center',
   minHeight: '100svh',
@@ -25,6 +19,16 @@ export const LoginPageRoot = styled('main', {
     alignItems: 'flex-start',
   },
 }))
+
+export const LoginBackground = styled('img')({
+  display: 'block',
+  height: '100%',
+  inset: 0,
+  objectFit: 'cover',
+  objectPosition: 'center',
+  position: 'absolute',
+  width: '100%',
+})
 
 export const LoginOverlay = styled(Box)(({ theme }) => ({
   backgroundColor: alpha(theme.palette.text.primary, 0.48),
