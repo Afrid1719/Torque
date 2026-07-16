@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 
-import { loginUser, type LoginCredentials } from '../api/auth'
+import { loginUser, type LoginCredentials } from '@app/api/auth'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }: { children: ReactNode }) {

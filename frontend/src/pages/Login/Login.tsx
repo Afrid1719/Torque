@@ -23,10 +23,10 @@ import {
 import { useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 
-import { ApiError } from '../../api/client'
-import { getBackendHealth } from '../../api/health'
-import workshopImage from '../../assets/workshop-login.webp'
-import { useAuth } from '../../hooks/useAuth'
+import { ApiError } from '@app/api/client'
+import { getBackendHealth } from '@app/api/health'
+import workshopImage from '@app/assets/workshop-login.webp'
+import { useAuth } from '@app/hooks/useAuth'
 import {
   BrandMark,
   DecorativeLink,

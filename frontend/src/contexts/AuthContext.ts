@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 
-import type { LoginCredentials } from '../api/auth'
+import type { LoginCredentials } from '@app/api/auth'
 
 export type AuthContextValue = {
   accessToken: string | null
