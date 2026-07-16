@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuth } from '@app/hooks/useAuth'
-import { AuthProvider } from './AuthProvider'
+import { AuthProvider } from '@app/contexts/AuthProvider'
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return {

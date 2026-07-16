@@ -1,4 +1,5 @@
-import { postJson, requestJson } from './client'
+import { postJson, requestJson } from '@app/api/client'
+import { API_V1_PREFIX } from '@app/api/constants'
 
 export type RoleName = 'workshop_manager' | 'service_advisor' | 'mechanic'
 
@@ -40,7 +41,7 @@ type LoginRequest = {
 export function loginUser(
   credentials: LoginCredentials,
 ): Promise<LoginResponse> {
-  return postJson<LoginResponse, LoginRequest>('/api/v1/auth/login', {
+  return postJson<LoginResponse, LoginRequest>(`${API_V1_PREFIX}/auth/login`, {
     username: credentials.username,
     password: credentials.password,
     remember_me: credentials.rememberMe,
@@ -48,19 +49,19 @@ export function loginUser(
 }
 
 export function refreshUserSession(): Promise<LoginResponse> {
-  return requestJson<LoginResponse>('/api/v1/auth/refresh', {
+  return requestJson<LoginResponse>(`${API_V1_PREFIX}/auth/refresh`, {
     method: 'POST',
   })
 }
 
 export function logoutUser(): Promise<void> {
-  return requestJson<void>('/api/v1/auth/logout', {
+  return requestJson<void>(`${API_V1_PREFIX}/auth/logout`, {
     method: 'POST',
   })
 }
 
 export function getCurrentUser(accessToken: string): Promise<CurrentUser> {
-  return requestJson<CurrentUser>('/api/v1/auth/me', {
+  return requestJson<CurrentUser>(`${API_V1_PREFIX}/auth/me`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

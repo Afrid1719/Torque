@@ -15,7 +15,7 @@ import {
   type LoginCredentials,
   type RoleName,
 } from '@app/api/auth'
-import { AuthContext, type AuthStatus } from './AuthContext'
+import { AuthContext, type AuthStatus } from '@app/contexts/AuthContext'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
@@ -60,11 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    try {
-      await logoutUser()
-    } catch {
-      // Local authentication state must be cleared even when logout cannot reach the API.
-    }
+    await logoutUser().catch(() => undefined)
 
     setAccessToken(null)
     setUser(null)
