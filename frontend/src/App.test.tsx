@@ -64,8 +64,12 @@ describe('App login flow', () => {
       screen.getByLabelText('Remember this device for 30 days'),
     ).toBeTruthy()
     expect(screen.queryByText('Forgot Password?')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Support' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Security' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Support' }).className).toContain(
+      'MuiLink-underlineNone',
+    )
+    expect(screen.getByRole('link', { name: 'Security' }).className).toContain(
+      'MuiLink-underlineNone',
+    )
     expect(await screen.findByText('Server connected')).toBeTruthy()
   })
 

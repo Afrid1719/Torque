@@ -39,6 +39,16 @@ type FieldErrors = {
   password?: string
 }
 
+const decorativeLinkStyles = {
+  fontSize: '12px',
+  fontWeight: 600,
+  lineHeight: '16px',
+  '&:hover': {
+    color: 'primary.main',
+    textDecoration: 'none',
+  },
+} as const
+
 function preventDecorativeNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault()
 }
@@ -238,7 +248,6 @@ export function LoginPage() {
                   alignSelf: 'flex-start',
                   color: 'text.secondary',
                   m: 0,
-                  '& .MuiFormControlLabel-label': { fontSize: '0.8125rem' },
                 }}
               />
 
@@ -262,7 +271,7 @@ export function LoginPage() {
             <Divider />
 
             <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Typography color="text.secondary" variant="body2">
+              <Typography color="text.secondary" variant="subtitle1">
                 Authorized Personnel Only
               </Typography>
               <Stack
@@ -275,7 +284,8 @@ export function LoginPage() {
                   color="text.secondary"
                   href="#"
                   onClick={preventDecorativeNavigation}
-                  underline="hover"
+                  sx={decorativeLinkStyles}
+                  underline="none"
                 >
                   <HelpOutlinedIcon fontSize="small" />
                   Support
@@ -285,7 +295,8 @@ export function LoginPage() {
                   color="text.secondary"
                   href="#"
                   onClick={preventDecorativeNavigation}
-                  underline="hover"
+                  sx={decorativeLinkStyles}
+                  underline="none"
                 >
                   <ShieldOutlinedIcon fontSize="small" />
                   Security

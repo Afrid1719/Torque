@@ -31,29 +31,54 @@ export const torqueTheme = createTheme({
   },
   typography: {
     fontFamily: 'Inter, "Segoe UI", Arial, sans-serif',
-    h4: {
-      fontSize: '2rem',
-      fontWeight: 700,
-      lineHeight: 1.25,
+    allVariants: {
       letterSpacing: 0,
+    },
+    h4: {
+      fontSize: '32px',
+      fontWeight: 700,
+      lineHeight: '40px',
     },
     h5: {
-      fontSize: '1.5rem',
+      fontSize: '24px',
       fontWeight: 600,
-      lineHeight: 1.33,
-      letterSpacing: 0,
+      lineHeight: '32px',
+    },
+    h6: {
+      fontSize: '20px',
+      fontWeight: 600,
+      lineHeight: '28px',
+    },
+    body1: {
+      fontSize: '16px',
+      fontWeight: 400,
+      lineHeight: '24px',
+    },
+    body2: {
+      fontSize: '14px',
+      fontWeight: 400,
+      lineHeight: '20px',
+    },
+    subtitle1: {
+      fontSize: '13px',
+      fontWeight: 400,
+      lineHeight: '18px',
+    },
+    caption: {
+      fontSize: '11px',
+      fontWeight: 500,
+      lineHeight: '14px',
     },
     button: {
-      fontSize: '0.75rem',
+      fontSize: '12px',
       fontWeight: 600,
-      letterSpacing: 0,
+      lineHeight: '16px',
       textTransform: 'none',
     },
     overline: {
-      fontSize: '0.75rem',
+      fontSize: '12px',
       fontWeight: 600,
-      lineHeight: 1.33,
-      letterSpacing: '0.08em',
+      lineHeight: '16px',
     },
   },
   shape: {
@@ -74,6 +99,41 @@ export const torqueTheme = createTheme({
     MuiTextField: {
       defaultProps: {
         size: 'small',
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          fontSize: '14px',
+          lineHeight: '20px',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: '12px',
+          fontWeight: 600,
+          lineHeight: '16px',
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          fontSize: '11px',
+          fontWeight: 500,
+          lineHeight: '14px',
+        },
+      },
+    },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          fontSize: '13px',
+          fontWeight: 400,
+          lineHeight: '18px',
+        },
       },
     },
   },
