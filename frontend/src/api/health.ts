@@ -5,6 +5,18 @@ export type BackendHealthResponse = {
   service: string
 }
 
+let pendingHealthRequest: Promise<BackendHealthResponse> | null = null
+
 export function getBackendHealth(): Promise<BackendHealthResponse> {
-  return getJson<BackendHealthResponse>('/api/v1/health')
+  if (pendingHealthRequest) {
+    return pendingHealthRequest
+  }
+
+  pendingHealthRequest = getJson<BackendHealthResponse>(
+    '/api/v1/health',
+  ).finally(() => {
+    pendingHealthRequest = null
+  })
+
+  return pendingHealthRequest
 }

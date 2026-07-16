@@ -82,7 +82,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Run frontend lint
+      - name: Run frontend lint (rejects explicit any)
         run: npm run lint
 
       - name: Check frontend formatting

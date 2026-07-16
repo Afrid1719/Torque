@@ -189,7 +189,9 @@ Vite prints the local frontend URL in the terminal, usually:
 http://localhost:5173/
 ```
 
-The temporary system-status page is available at this frontend root URL.
+Unauthenticated users are redirected to `/login`. Successful login redirects to
+the Dashboard entry point at `/`. The login page includes a server connection
+indicator backed by the health endpoint.
 
 To confirm the frontend development environment can reach the backend health endpoint, keep the backend running and run this from the `frontend` directory:
 
@@ -268,7 +270,7 @@ If database health returns `unavailable`, confirm:
 - Migrations have been applied with `alembic upgrade head`.
 - FastAPI was restarted after changing `.env`.
 
-If the frontend system-status page cannot reach the backend, confirm:
+If the login page reports `Server unavailable`, confirm:
 
 - FastAPI is running at the origin configured by `VITE_API_BASE_URL`.
 - `frontend/.env` contains only the backend origin, such as `http://localhost:8000`.

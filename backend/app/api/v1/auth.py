@@ -46,6 +46,7 @@ async def login(
             username=payload.username,
             plain_password=payload.password,
             settings=settings,
+            remember_me=payload.remember_me,
             user_agent=user_agent,
             ip_address=ip_address,
         )
@@ -59,8 +60,12 @@ async def login(
     response.set_cookie(
         key=settings.refresh_cookie_name,
         value=result.refresh_token,
-        max_age=settings.refresh_session_expire_seconds,
-        expires=result.refresh_session_expires_at,
+        max_age=(
+            settings.remembered_refresh_session_expire_seconds
+            if payload.remember_me
+            else None
+        ),
+        expires=result.refresh_session_expires_at if payload.remember_me else None,
         path=settings.refresh_cookie_path,
         secure=settings.refresh_cookie_secure,
         httponly=True,

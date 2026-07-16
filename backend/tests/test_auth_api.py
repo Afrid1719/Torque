@@ -39,7 +39,7 @@ def test_login_returns_access_token_and_secure_refresh_cookie(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    refresh_expires_at = datetime.now(UTC) + timedelta(days=10)
+    refresh_expires_at = datetime.now(UTC) + timedelta(days=30)
     authenticate = AsyncMock(
         return_value=LoginResult(
             access_token="signed-access-token",
@@ -52,7 +52,11 @@ def test_login_returns_access_token_and_secure_refresh_cookie(
 
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": " manager ", "password": "test-password"},
+        json={
+            "username": " manager ",
+            "password": "test-password",
+            "remember_me": True,
+        },
         headers={"user-agent": "test-browser"},
     )
 
@@ -66,12 +70,39 @@ def test_login_returns_access_token_and_secure_refresh_cookie(
     cookie = response.headers["set-cookie"]
     assert "torque_refresh_token=raw-refresh-token" in cookie
     assert "HttpOnly" in cookie
-    assert "Max-Age=864000" in cookie
+    assert "Max-Age=2592000" in cookie
     assert "Path=/api/v1/auth" in cookie
     assert "SameSite=lax" in cookie
     assert "Secure" in cookie
     assert authenticate.await_args.kwargs["username"] == "manager"
+    assert authenticate.await_args.kwargs["remember_me"] is True
     assert authenticate.await_args.kwargs["user_agent"] == "test-browser"
+
+
+def test_login_uses_browser_session_cookie_when_device_is_not_remembered(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate = AsyncMock(
+        return_value=LoginResult(
+            access_token="signed-access-token",
+            access_token_expires_in=1800,
+            refresh_token="raw-refresh-token",
+            refresh_session_expires_at=datetime.now(UTC) + timedelta(days=10),
+        )
+    )
+    monkeypatch.setattr(auth_api, "authenticate_user", authenticate)
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"username": "manager", "password": "test-password"},
+    )
+
+    assert response.status_code == 200
+    cookie = response.headers["set-cookie"]
+    assert "Max-Age" not in cookie
+    assert "expires=" not in cookie.lower()
+    assert authenticate.await_args.kwargs["remember_me"] is False
 
 
 def test_login_returns_same_controlled_error_without_cookie(
