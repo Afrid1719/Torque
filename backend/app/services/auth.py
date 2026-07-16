@@ -6,12 +6,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
 from app.core.security import dummy_password_hash, verify_password
-from app.core.tokens import create_access_token, create_refresh_token
+from app.core.tokens import (
+    create_access_token,
+    create_refresh_token,
+    hash_refresh_token,
+)
 from app.db.models import UserSession
+from app.repositories.sessions import get_session_by_refresh_token_hash
 from app.repositories.users import get_user_by_username
 
 
 class InvalidCredentialsError(Exception):
+    pass
+
+
+class InvalidRefreshSessionError(Exception):
     pass
 
 
@@ -21,6 +30,12 @@ class LoginResult:
     access_token_expires_in: int
     refresh_token: str
     refresh_session_expires_at: datetime
+
+
+@dataclass(frozen=True)
+class RefreshResult:
+    access_token: str
+    access_token_expires_in: int
 
 
 async def authenticate_user(
@@ -77,4 +92,50 @@ async def authenticate_user(
         access_token_expires_in=settings.access_token_expire_seconds,
         refresh_token=refresh_token.raw_value,
         refresh_session_expires_at=refresh_session_expires_at,
+    )
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+async def refresh_access_token(
+    session: AsyncSession,
+    raw_refresh_token: str,
+    settings: Settings,
+    refreshed_at: datetime | None = None,
+) -> RefreshResult:
+    refreshed_at = refreshed_at or datetime.now(UTC)
+    stored_session = await get_session_by_refresh_token_hash(
+        session,
+        hash_refresh_token(raw_refresh_token),
+    )
+
+    if (
+        stored_session is None
+        or stored_session.revoked_at is not None
+        or _as_utc(stored_session.expires_at) <= refreshed_at
+        or not stored_session.user.is_active
+    ):
+        raise InvalidRefreshSessionError
+
+    access_token = create_access_token(
+        user_id=stored_session.user.id,
+        role=stored_session.user.role.name,
+        settings=settings,
+        issued_at=refreshed_at,
+    )
+    stored_session.last_used_at = refreshed_at
+
+    try:
+        await session.commit()
+    except SQLAlchemyError:
+        await session.rollback()
+        raise
+
+    return RefreshResult(
+        access_token=access_token.value,
+        access_token_expires_in=settings.access_token_expire_seconds,
     )

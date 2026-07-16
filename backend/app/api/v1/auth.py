@@ -7,9 +7,42 @@ from app.api.dependencies.auth import CurrentUser
 from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.schemas.auth import CurrentUserResponse, LoginRequest, LoginResponse
-from app.services.auth import InvalidCredentialsError, authenticate_user
+from app.services.auth import (
+    InvalidCredentialsError,
+    InvalidRefreshSessionError,
+    authenticate_user,
+    refresh_access_token,
+)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+
+def _validate_cookie_request_origin(request: Request, settings: Settings) -> None:
+    origin = request.headers.get("origin")
+    if origin is None or origin not in settings.cors_origins:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Request origin is not allowed.",
+        )
+
+
+def _refresh_unauthorized(settings: Settings) -> HTTPException:
+    expired_cookie = Response()
+    expired_cookie.delete_cookie(
+        key=settings.refresh_cookie_name,
+        path=settings.refresh_cookie_path,
+        secure=settings.refresh_cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not refresh session.",
+        headers={
+            "WWW-Authenticate": "Bearer",
+            "Set-Cookie": expired_cookie.headers["set-cookie"],
+        },
+    )
 
 
 @router.get(
@@ -71,6 +104,39 @@ async def login(
         httponly=True,
         samesite="lax",
     )
+    return LoginResponse(
+        access_token=result.access_token,
+        expires_in=result.access_token_expires_in,
+    )
+
+
+@router.post(
+    "/refresh",
+    response_model=LoginResponse,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Invalid refresh session"},
+        status.HTTP_403_FORBIDDEN: {"description": "Disallowed request origin"},
+    },
+)
+async def refresh(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> LoginResponse:
+    _validate_cookie_request_origin(request, settings)
+    raw_refresh_token = request.cookies.get(settings.refresh_cookie_name)
+    if raw_refresh_token is None:
+        raise _refresh_unauthorized(settings)
+
+    try:
+        result = await refresh_access_token(
+            session=session,
+            raw_refresh_token=raw_refresh_token,
+            settings=settings,
+        )
+    except InvalidRefreshSessionError as exc:
+        raise _refresh_unauthorized(settings) from exc
+
     return LoginResponse(
         access_token=result.access_token,
         expires_in=result.access_token_expires_in,

@@ -36,9 +36,12 @@ npm run dev
 
 Vite prints the local development URL in the terminal, usually `http://localhost:5173/`.
 
-Unauthenticated users are redirected to `/login`. Successful login redirects to
-the Dashboard entry point at `/`. The login page reports whether it can reach
-the configured backend.
+The app restores an existing cookie-backed session before resolving protected
+routes. Unauthenticated users are redirected to `/login`; authenticated users
+can access the Dashboard entry point at `/`. Successful login loads the current
+user and role before redirecting to the Dashboard. Frontend role guards improve
+navigation and messaging, but backend authorization remains authoritative for
+every protected API operation.
 
 ## Available Scripts
 
