@@ -142,6 +142,18 @@ matching server-side refresh session when present, clears the refresh cookie,
 and returns HTTP 204. Logout is idempotent, but still requires an allowed
 frontend `Origin` because the refresh credential is cookie-backed.
 
+## Customer API
+
+Workshop Managers and Service Advisors can create a customer with
+`POST /api/v1/customers` and retrieve the resulting record with
+`GET /api/v1/customers/{customer_id}`. Customer name and mobile number are
+required; email, address, and notes are optional. Mobile numbers are stored in
+a canonical form and must be unique. Duplicate creation returns HTTP 409, and
+unknown customer IDs return HTTP 404.
+
+Both endpoints require a bearer access token. Mechanics are not authorized to
+create or retrieve customer profiles through these customer-management routes.
+
 ## Development Users
 
 TORQUE provides an explicit local-only command that creates or updates one
