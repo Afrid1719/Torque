@@ -124,7 +124,10 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
             component={RouterLink}
             key={path}
             onClick={onNavigate}
-            selected={location.pathname === path}
+            selected={
+              location.pathname === path ||
+              (path !== '/' && location.pathname.startsWith(`${path}/`))
+            }
             sx={{
               borderLeft: '4px solid transparent',
               color: '#e0e3e5',
@@ -167,7 +170,6 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
           fullWidth
           onClick={onNavigate}
           startIcon={<AddCircleOutlineIcon />}
-          sx={{ minHeight: 40 }}
           to="/job-cards"
           variant="contained"
         >
@@ -303,7 +305,6 @@ function AppHeader({ onOpenNavigation }: AppHeaderProps) {
           component={RouterLink}
           sx={{
             display: { xs: 'none', lg: 'inline-flex' },
-            minHeight: 36,
             whiteSpace: 'nowrap',
           }}
           to="/vehicles"
