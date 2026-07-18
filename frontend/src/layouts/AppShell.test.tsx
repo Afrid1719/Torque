@@ -6,20 +6,18 @@ import { AppShell } from './AppShell'
 jest.mock('../hooks/useAuth', () => ({ useAuth: jest.fn() }))
 
 it('renders navigation, the current user, and nested content', () => {
-  jest
-    .mocked(useAuth)
-    .mockReturnValue({
-      logout: jest.fn(),
-      user: {
+  jest.mocked(useAuth).mockReturnValue({
+    logout: jest.fn(),
+    user: {
+      id: 1,
+      username: 'dev_manager',
+      role: {
         id: 1,
-        username: 'dev_manager',
-        role: {
-          id: 1,
-          name: 'workshop_manager',
-          display_name: 'Workshop Manager',
-        },
+        name: 'workshop_manager',
+        display_name: 'Workshop Manager',
       },
-    } as never)
+    },
+  } as never)
   render(
     <MemoryRouter>
       <Routes>
