@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuth } from '@app/hooks/useAuth'
 import { AuthProvider } from '@app/contexts/AuthProvider'
@@ -8,7 +7,7 @@ function jsonResponse(payload: unknown, status = 200): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
-    json: vi.fn().mockResolvedValue(payload),
+    json: jest.fn().mockResolvedValue(payload),
   } as unknown as Response
 }
 
@@ -16,7 +15,7 @@ function noContentResponse(): Response {
   return {
     ok: true,
     status: 204,
-    json: vi.fn(),
+    json: jest.fn(),
   } as unknown as Response
 }
 
@@ -36,7 +35,7 @@ function AuthProbe() {
 }
 
 function sessionFetch(logoutFails = false) {
-  return vi.fn().mockImplementation((input: RequestInfo | URL) => {
+  return jest.fn().mockImplementation((input: RequestInfo | URL) => {
     const url = String(input)
 
     if (url.endsWith('/api/v1/auth/refresh')) {
@@ -73,12 +72,12 @@ function sessionFetch(logoutFails = false) {
 
 describe('AuthProvider logout', () => {
   afterEach(() => {
-    vi.unstubAllGlobals()
+    jest.restoreAllMocks()
   })
 
   it('calls the logout endpoint and clears all local authentication state', async () => {
     const fetchMock = sessionFetch()
-    vi.stubGlobal('fetch', fetchMock)
+    jest.replaceProperty(globalThis, 'fetch', fetchMock)
 
     render(
       <AuthProvider>
@@ -104,7 +103,7 @@ describe('AuthProvider logout', () => {
   })
 
   it('clears local authentication state when the logout request fails', async () => {
-    vi.stubGlobal('fetch', sessionFetch(true))
+    jest.replaceProperty(globalThis, 'fetch', sessionFetch(true))
 
     render(
       <AuthProvider>
