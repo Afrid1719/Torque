@@ -159,7 +159,7 @@ export function CustomerProfilePage() {
         >
           Customers
         </Link>
-        <Typography color="primary" fontWeight={700} variant="caption">
+        <Typography color="primary" sx={{ fontWeight: 700 }} variant="caption">
           {customer.name}
         </Typography>
       </Breadcrumbs>
