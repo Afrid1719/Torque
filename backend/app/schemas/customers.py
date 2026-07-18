@@ -22,6 +22,8 @@ OptionalNotes = Annotated[
 ]
 
 _EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+# Accept 7-15 digits with an optional leading `+`; spaces, hyphens, and
+# parentheses are allowed for display formatting and removed before storage.
 _MOBILE_SEPARATORS = str.maketrans("", "", " -()")
 
 
@@ -41,6 +43,13 @@ class CustomerCreate(BaseModel):
     email: OptionalEmail | None = None
     address: OptionalAddress | None = None
     notes: OptionalNotes | None = None
+
+    @field_validator("email", "address", "notes", mode="before")
+    @classmethod
+    def normalize_blank_optional_fields(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @field_validator("mobile_number")
     @classmethod

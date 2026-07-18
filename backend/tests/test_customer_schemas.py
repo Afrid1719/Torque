@@ -46,3 +46,16 @@ def test_customer_create_rejects_unknown_fields() -> None:
             mobile_number="9876543210",
             vehicle_registration="KA01AB1234",  # type: ignore[call-arg]
         )
+
+
+def test_customer_create_converts_blank_optional_fields_to_none() -> None:
+    payload = CustomerCreate(
+        name="John",
+        mobile_number="1234567890",
+        email="john@mail.com",
+        address="",
+        notes="   ",
+    )
+
+    assert payload.address is None
+    assert payload.notes is None
