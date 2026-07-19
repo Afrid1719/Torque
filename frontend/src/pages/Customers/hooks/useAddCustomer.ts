@@ -11,12 +11,12 @@ import { useAuth } from '@app/hooks/useAuth'
 import {
   toProfileState,
   type CustomerProfileState,
-} from '@app/pages/Customers/customerProfileModel'
+} from '@app/pages/Customers/utils/customerProfileModel'
 import {
   validateCustomer,
   type CustomerField,
   type CustomerFieldErrors,
-} from '@app/pages/Customers/customerValidation'
+} from '@app/pages/Customers/utils/customerValidation'
 
 export type CustomerFlowState = 'form' | 'loading' | 'success'
 

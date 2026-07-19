@@ -11,11 +11,11 @@ import {
   Typography,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router'
-import { CustomerCreationLoading } from '@app/pages/Customers/CustomerCreationLoading'
-import { CustomerCreationSuccess } from '@app/pages/Customers/CustomerCreationSuccess'
-import { CustomerForm } from '@app/pages/Customers/CustomerForm'
-import { CustomerInformationTile } from '@app/pages/Customers/CustomerInformationTile'
-import { useAddCustomer } from '@app/pages/Customers/useAddCustomer'
+import { CustomerCreationLoading } from '@app/pages/Customers/components/CustomerCreationLoading'
+import { CustomerCreationSuccess } from '@app/pages/Customers/components/CustomerCreationSuccess'
+import { CustomerForm } from '@app/pages/Customers/components/CustomerForm'
+import { CustomerInformationTile } from '@app/pages/Customers/components/CustomerInformationTile'
+import { useAddCustomer } from '@app/pages/Customers/hooks/useAddCustomer'
 
 export function AddCustomerPage() {
   const customerFlow = useAddCustomer()

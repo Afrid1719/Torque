@@ -12,16 +12,16 @@ import { Link as RouterLink, useLocation, useParams } from 'react-router'
 import { ApiError } from '@app/api/client'
 import { customerQueryKey, getCustomer } from '@app/api/customers'
 import { useAuth } from '@app/hooks/useAuth'
-import { CustomerActivity } from '@app/pages/Customers/CustomerActivity'
-import { CustomerProfileOverview } from '@app/pages/Customers/CustomerProfileOverview'
-import { CustomerStats } from '@app/pages/Customers/CustomerStats'
+import { CustomerActivity } from '@app/pages/Customers/components/CustomerActivity'
+import { CustomerProfileOverview } from '@app/pages/Customers/components/CustomerProfileOverview'
+import { CustomerStats } from '@app/pages/Customers/components/CustomerStats'
 import {
   fallbackCustomer,
   toProfileState,
   type CustomerProfileState,
-} from '@app/pages/Customers/customerProfileModel'
+} from '@app/pages/Customers/utils/customerProfileModel'
 
-export type { CustomerProfileState } from '@app/pages/Customers/customerProfileModel'
+export type { CustomerProfileState } from '@app/pages/Customers/utils/customerProfileModel'
 
 export function CustomerProfilePage() {
   const location = useLocation()

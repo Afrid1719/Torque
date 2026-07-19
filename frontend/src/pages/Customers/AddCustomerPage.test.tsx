@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { useAddCustomer } from './useAddCustomer'
+import { useAddCustomer } from './hooks/useAddCustomer'
 import { AddCustomerPage } from './AddCustomerPage'
 
-jest.mock('./useAddCustomer', () => ({ useAddCustomer: jest.fn() }))
+jest.mock('./hooks/useAddCustomer', () => ({ useAddCustomer: jest.fn() }))
 
 it('renders the customer creation form', () => {
   jest.mocked(useAddCustomer).mockReturnValue({
