@@ -16,7 +16,7 @@ import type { FormEvent, RefObject } from 'react'
 import type {
   CustomerField,
   CustomerFieldErrors,
-} from '@app/pages/Customers/utils/customerValidation'
+} from '@app/utils/customers/customerValidation'
 
 const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: 1 } }
 

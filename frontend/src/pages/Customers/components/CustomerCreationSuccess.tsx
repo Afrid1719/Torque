@@ -1,7 +1,7 @@
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
 import { Box, Card, Typography } from '@mui/material'
-import type { CustomerProfileState } from '@app/pages/Customers/utils/customerProfileModel'
+import type { CustomerProfileState } from '@app/utils/customers/customerProfileModel'
 
 export function CustomerCreationSuccess({
   customer,

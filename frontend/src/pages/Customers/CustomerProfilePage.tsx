@@ -19,9 +19,9 @@ import {
   fallbackCustomer,
   toProfileState,
   type CustomerProfileState,
-} from '@app/pages/Customers/utils/customerProfileModel'
+} from '@app/utils/customers/customerProfileModel'
 
-export type { CustomerProfileState } from '@app/pages/Customers/utils/customerProfileModel'
+export type { CustomerProfileState } from '@app/utils/customers/customerProfileModel'
 
 export function CustomerProfilePage() {
   const location = useLocation()

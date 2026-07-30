@@ -16,7 +16,7 @@ import {
 import {
   customerInitials,
   type CustomerProfileState,
-} from '@app/pages/Customers/utils/customerProfileModel'
+} from '@app/utils/customers/customerProfileModel'
 
 export function CustomerProfileOverview({
   customer,
