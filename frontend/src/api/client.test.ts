@@ -1,19 +1,18 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-
 import { ApiError, getJson, requestJson } from '@app/api/client'
 
 describe('API errors', () => {
   afterEach(() => {
-    vi.unstubAllGlobals()
+    jest.restoreAllMocks()
   })
 
   it('organizes FastAPI validation details into one message', async () => {
-    vi.stubGlobal(
+    jest.replaceProperty(
+      globalThis,
       'fetch',
-      vi.fn().mockResolvedValue({
+      jest.fn().mockResolvedValue({
         ok: false,
         status: 422,
-        json: vi.fn().mockResolvedValue({
+        json: jest.fn().mockResolvedValue({
           detail: [
             { msg: 'Username is required.' },
             { msg: 'Password is required.' },
@@ -31,12 +30,13 @@ describe('API errors', () => {
   })
 
   it('uses a controlled fallback for non-JSON server errors', async () => {
-    vi.stubGlobal(
+    jest.replaceProperty(
+      globalThis,
       'fetch',
-      vi.fn().mockResolvedValue({
+      jest.fn().mockResolvedValue({
         ok: false,
         status: 500,
-        json: vi.fn().mockRejectedValue(new Error('not json')),
+        json: jest.fn().mockRejectedValue(new Error('not json')),
       }),
     )
 
@@ -50,7 +50,11 @@ describe('API errors', () => {
   })
 
   it('converts network failures into a central API error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    jest.replaceProperty(
+      globalThis,
+      'fetch',
+      jest.fn().mockRejectedValue(new Error('offline')),
+    )
 
     await expect(getJson('/health')).rejects.toMatchObject({
       status: null,
@@ -60,10 +64,11 @@ describe('API errors', () => {
   })
 
   it('handles successful no-content responses without parsing JSON', async () => {
-    const json = vi.fn()
-    vi.stubGlobal(
+    const json = jest.fn()
+    jest.replaceProperty(
+      globalThis,
       'fetch',
-      vi.fn().mockResolvedValue({
+      jest.fn().mockResolvedValue({
         ok: true,
         status: 204,
         json,
@@ -74,5 +79,27 @@ describe('API errors', () => {
       requestJson<void>('/auth/logout', { method: 'POST' }),
     ).resolves.toBeUndefined()
     expect(json).not.toHaveBeenCalled()
+  })
+
+  it('adds authentication and JSON headers from request options', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue({ id: 1 }),
+    })
+    jest.replaceProperty(globalThis, 'fetch', fetchMock)
+
+    await requestJson('/customers', {
+      accessToken: 'token',
+      body: JSON.stringify({ name: 'John' }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+
+    const requestOptions = fetchMock.mock.calls[0]?.[1] as RequestInit
+    const headers = new Headers(requestOptions.headers)
+    expect(headers.get('Accept')).toBe('application/json')
+    expect(headers.get('Authorization')).toBe('Bearer token')
+    expect(headers.get('Content-Type')).toBe('application/json')
   })
 })

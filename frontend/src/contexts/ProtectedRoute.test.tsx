@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
-import { describe, expect, it, vi } from 'vitest'
 
 import type { CurrentUser, RoleName } from '@app/api/auth'
 import { AuthContext, type AuthContextValue } from '@app/contexts/AuthContext'
@@ -27,8 +26,8 @@ function contextValue(
     user,
     hasRole: (roles: readonly RoleName[]) =>
       user !== null && roles.includes(user.role.name),
-    login: vi.fn(),
-    logout: vi.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
     ...overrides,
   }
 }

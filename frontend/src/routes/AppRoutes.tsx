@@ -1,8 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router'
 
+import { RoleName } from '@app/api/auth'
 import { ProtectedRoute } from '@app/contexts/ProtectedRoute'
 import { AppShell } from '@app/layouts/AppShell'
 import { DashboardPage } from '@app/pages/DashboardPage'
+import { AddCustomerPage } from '@app/pages/Customers/AddCustomerPage'
+import { CustomerProfilePage } from '@app/pages/Customers/CustomerProfilePage'
 import { LoginPage } from '@app/pages/Login/Login'
 import { PlaceholderPage } from '@app/pages/PlaceholderPage'
 
@@ -17,6 +20,22 @@ export function AppRoutes() {
             element={<PlaceholderPage title="Customers" />}
             path="/customers"
           />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.WORKSHOP_MANAGER,
+                  RoleName.SERVICE_ADVISOR,
+                ]}
+              />
+            }
+          >
+            <Route element={<AddCustomerPage />} path="/customers/new" />
+            <Route
+              element={<CustomerProfilePage />}
+              path="/customers/:customerId"
+            />
+          </Route>
           <Route
             element={<PlaceholderPage title="Vehicles" />}
             path="/vehicles"

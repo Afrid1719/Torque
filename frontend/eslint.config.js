@@ -33,4 +33,8 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ['**/*.test.{ts,tsx}'],
+    rules: { 'no-restricted-imports': 'off' },
+  },
 ])

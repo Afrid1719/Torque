@@ -88,8 +88,10 @@ export const torqueTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          minHeight: 48,
           boxShadow: 'none',
+          minHeight: 40,
+          paddingBottom: 6,
+          paddingTop: 6,
           '&:hover': {
             boxShadow: 'none',
           },

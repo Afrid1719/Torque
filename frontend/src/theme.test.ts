@@ -1,5 +1,3 @@
-import { describe, expect, it } from 'vitest'
-
 import { torqueTheme } from '@app/theme'
 
 describe('TORQUE typography', () => {
