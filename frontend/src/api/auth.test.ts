@@ -1,4 +1,4 @@
-import { postJson, requestJson } from './client'
+import { getJson, postJson, requestJson } from './client'
 import {
   getCurrentUser,
   loginUser,
@@ -7,10 +7,15 @@ import {
   restoreAuthSession,
 } from './auth'
 
-jest.mock('./client', () => ({ postJson: jest.fn(), requestJson: jest.fn() }))
+jest.mock('./client', () => ({
+  getJson: jest.fn(),
+  postJson: jest.fn(),
+  requestJson: jest.fn(),
+}))
 
 it('uses the expected authentication contracts', async () => {
   jest.mocked(postJson).mockResolvedValue({} as never)
+  jest.mocked(getJson).mockResolvedValue({} as never)
   jest.mocked(requestJson).mockResolvedValue({} as never)
   await loginUser({ username: 'advisor', password: 'secret', rememberMe: true })
   expect(postJson).toHaveBeenCalledWith('/api/v1/auth/login', {
@@ -19,8 +24,8 @@ it('uses the expected authentication contracts', async () => {
     remember_me: true,
   })
   await getCurrentUser('token')
-  expect(requestJson).toHaveBeenCalledWith('/api/v1/auth/me', {
-    headers: { Authorization: 'Bearer token' },
+  expect(getJson).toHaveBeenCalledWith('/api/v1/auth/me', {
+    accessToken: 'token',
   })
   await refreshUserSession()
   await logoutUser()

@@ -80,4 +80,26 @@ describe('API errors', () => {
     ).resolves.toBeUndefined()
     expect(json).not.toHaveBeenCalled()
   })
+
+  it('adds authentication and JSON headers from request options', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue({ id: 1 }),
+    })
+    jest.replaceProperty(globalThis, 'fetch', fetchMock)
+
+    await requestJson('/customers', {
+      accessToken: 'token',
+      body: JSON.stringify({ name: 'John' }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+
+    const requestOptions = fetchMock.mock.calls[0]?.[1] as RequestInit
+    const headers = new Headers(requestOptions.headers)
+    expect(headers.get('Accept')).toBe('application/json')
+    expect(headers.get('Authorization')).toBe('Bearer token')
+    expect(headers.get('Content-Type')).toBe('application/json')
+  })
 })

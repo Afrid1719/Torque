@@ -1,7 +1,13 @@
-import { postJson, requestJson } from '@app/api/client'
+import { getJson, postJson, requestJson } from '@app/api/client'
 import { API_V1_PREFIX } from '@app/api/constants'
 
-export type RoleName = 'workshop_manager' | 'service_advisor' | 'mechanic'
+export const RoleName = {
+  MECHANIC: 'mechanic',
+  SERVICE_ADVISOR: 'service_advisor',
+  WORKSHOP_MANAGER: 'workshop_manager',
+} as const
+
+export type RoleName = (typeof RoleName)[keyof typeof RoleName]
 
 export type CurrentUserRole = {
   id: number
@@ -61,11 +67,7 @@ export function logoutUser(): Promise<void> {
 }
 
 export function getCurrentUser(accessToken: string): Promise<CurrentUser> {
-  return requestJson<CurrentUser>(`${API_V1_PREFIX}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
+  return getJson<CurrentUser>(`${API_V1_PREFIX}/auth/me`, { accessToken })
 }
 
 async function requestSessionRestore(): Promise<AuthSession> {

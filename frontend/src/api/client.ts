@@ -18,6 +18,26 @@ const fallbackMessages: Record<number, string> = {
   422: 'Please review the information you entered.',
 }
 
+export type ApiRequestOptions = Omit<RequestInit, 'headers'> & {
+  accessToken?: string
+  headers?: HeadersInit
+}
+
+function buildRequestHeaders(
+  accessToken: string | undefined,
+  requestHeaders: HeadersInit | undefined,
+): Headers {
+  const headers = new Headers({ Accept: 'application/json' })
+
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  new Headers(requestHeaders).forEach((value, key) => headers.set(key, value))
+
+  return headers
+}
+
 function readDetailMessage(detail: unknown): string | null {
   if (typeof detail === 'string' && detail.trim()) {
     return detail
@@ -85,7 +105,7 @@ export class ApiError extends Error {
 
 export async function requestJson<TResponse>(
   path: string,
-  init: RequestInit = {},
+  { accessToken, headers: requestHeaders, ...init }: ApiRequestOptions = {},
 ): Promise<TResponse> {
   let response: Response
 
@@ -93,10 +113,7 @@ export async function requestJson<TResponse>(
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-        ...init.headers,
-      },
+      headers: buildRequestHeaders(accessToken, requestHeaders),
     })
   } catch {
     throw ApiError.network()
@@ -113,19 +130,25 @@ export async function requestJson<TResponse>(
   return response.json() as Promise<TResponse>
 }
 
-export function getJson<TResponse>(path: string): Promise<TResponse> {
-  return requestJson<TResponse>(path)
+export function getJson<TResponse>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<TResponse> {
+  return requestJson<TResponse>(path, options)
 }
 
 export function postJson<TResponse, TRequest>(
   path: string,
   body: TRequest,
+  options: ApiRequestOptions = {},
 ): Promise<TResponse> {
+  const headers = new Headers(options.headers)
+  headers.set('Content-Type', 'application/json')
+
   return requestJson<TResponse>(path, {
+    ...options,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   })
 }

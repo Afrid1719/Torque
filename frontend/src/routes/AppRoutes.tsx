@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router'
 
+import { RoleName } from '@app/api/auth'
 import { ProtectedRoute } from '@app/contexts/ProtectedRoute'
 import { AppShell } from '@app/layouts/AppShell'
 import { DashboardPage } from '@app/pages/DashboardPage'
@@ -22,7 +23,10 @@ export function AppRoutes() {
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={['workshop_manager', 'service_advisor']}
+                allowedRoles={[
+                  RoleName.WORKSHOP_MANAGER,
+                  RoleName.SERVICE_ADVISOR,
+                ]}
               />
             }
           >

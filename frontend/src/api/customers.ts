@@ -1,4 +1,4 @@
-import { requestJson } from '@app/api/client'
+import { getJson, postJson } from '@app/api/client'
 import { API_V1_PREFIX } from '@app/api/constants'
 
 export type Customer = {
@@ -27,22 +27,19 @@ export function createCustomer(
   accessToken: string,
   payload: CreateCustomerRequest,
 ): Promise<Customer> {
-  return requestJson<Customer>(`${API_V1_PREFIX}/customers`, {
-    body: JSON.stringify(payload),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-  })
+  return postJson<Customer, CreateCustomerRequest>(
+    `${API_V1_PREFIX}/customers`,
+    payload,
+    { accessToken },
+  )
 }
 
 export function getCustomer(
   accessToken: string,
   customerId: string,
 ): Promise<Customer> {
-  return requestJson<Customer>(
+  return getJson<Customer>(
     `${API_V1_PREFIX}/customers/${encodeURIComponent(customerId)}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
+    { accessToken },
   )
 }
