@@ -58,6 +58,22 @@ def build_customer() -> Customer:
     )
 
 
+def build_customer_list() -> list[Customer]:
+    return [
+        build_customer(),
+        Customer(
+            id=24,
+            name="Bilal Khan",
+            mobile_number="9876543210",
+            email=None,
+            address=None,
+            notes=None,
+            created_at=NOW,
+            updated_at=NOW,
+        ),
+    ]
+
+
 def token() -> str:
     return create_access_token(
         user_id=7,
@@ -169,6 +185,82 @@ def test_duplicate_mobile_number_returns_conflict(
     assert response.json() == {
         "detail": "A customer with this mobile number already exists."
     }
+
+
+@pytest.mark.parametrize("role_name", ["workshop_manager", "service_advisor"])
+def test_authorized_staff_can_list_customers(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    role_name: str,
+) -> None:
+    authenticate_as(monkeypatch, role_name)
+    list_records = AsyncMock(return_value=build_customer_list())
+    monkeypatch.setattr(customer_api, "list_customers", list_records)
+
+    response = client.get(
+        "/api/v1/customers",
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 200
+    assert [customer["name"] for customer in response.json()] == [
+        "Asha Rao",
+        "Bilal Khan",
+    ]
+    assert list_records.await_args.args[1] is None
+
+
+@pytest.mark.parametrize("search", ["asha", "98765"])
+def test_customer_list_passes_search_to_repository(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    search: str,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    list_records = AsyncMock(return_value=[build_customer()])
+    monkeypatch.setattr(customer_api, "list_customers", list_records)
+
+    response = client.get(
+        "/api/v1/customers",
+        params={"search": search},
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 200
+    assert list_records.await_args.args[1] == search
+
+
+def test_customer_list_returns_empty_collection(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    monkeypatch.setattr(customer_api, "list_customers", AsyncMock(return_value=[]))
+
+    response = client.get(
+        "/api/v1/customers",
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_mechanic_cannot_list_customers(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "mechanic")
+    list_records = AsyncMock()
+    monkeypatch.setattr(customer_api, "list_customers", list_records)
+
+    response = client.get(
+        "/api/v1/customers",
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 403
+    list_records.assert_not_awaited()
 
 
 def test_authorized_staff_can_get_created_customer(
