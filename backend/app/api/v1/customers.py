@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.authorization import require_roles
 from app.core.roles import RoleName
 from app.db.models import User
 from app.db.session import get_db_session
-from app.repositories.customers import get_customer_by_id
+from app.repositories.customers import get_customer_by_id, list_customers
 from app.schemas.customers import CustomerCreate, CustomerResponse
 from app.services.customers import DuplicateMobileNumberError, create_customer
 
@@ -22,6 +22,25 @@ CustomerStaffUser = Annotated[
         )
     ),
 ]
+
+
+@router.get(
+    "",
+    response_model=list[CustomerResponse],
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "Forbidden"},
+    },
+)
+async def list_customer_records(
+    _current_user: CustomerStaffUser,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    search: Annotated[str | None, Query(max_length=150)] = None,
+) -> list[CustomerResponse]:
+    return [
+        CustomerResponse.model_validate(customer)
+        for customer in await list_customers(session, search)
+    ]
 
 
 @router.post(
