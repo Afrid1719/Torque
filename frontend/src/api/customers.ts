@@ -23,6 +23,9 @@ export type CreateCustomerRequest = {
 export const customerQueryKey = (customerId: string | number) =>
   ['customer', String(customerId)] as const
 
+export const customerListQueryKey = (search: string) =>
+  ['customers', 'list', search] as const
+
 export function createCustomer(
   accessToken: string,
   payload: CreateCustomerRequest,
@@ -42,4 +45,18 @@ export function getCustomer(
     `${API_V1_PREFIX}/customers/${encodeURIComponent(customerId)}`,
     { accessToken },
   )
+}
+
+export function getCustomers(
+  accessToken: string,
+  search = '',
+): Promise<Customer[]> {
+  const normalizedSearch = search.trim()
+  const query = normalizedSearch
+    ? `?${new URLSearchParams({ search: normalizedSearch }).toString()}`
+    : ''
+
+  return getJson<Customer[]>(`${API_V1_PREFIX}/customers${query}`, {
+    accessToken,
+  })
 }
