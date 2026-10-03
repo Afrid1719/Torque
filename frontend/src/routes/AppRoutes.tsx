@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@app/contexts/ProtectedRoute'
 import { AppShell } from '@app/layouts/AppShell'
 import { DashboardPage } from '@app/pages/DashboardPage'
 import { AddCustomerPage } from '@app/pages/Customers/AddCustomerPage'
+import { CustomerListPage } from '@app/pages/Customers/CustomerListPage'
 import { CustomerProfilePage } from '@app/pages/Customers/CustomerProfilePage'
 import { LoginPage } from '@app/pages/Login/Login'
 import { PlaceholderPage } from '@app/pages/PlaceholderPage'
@@ -17,10 +18,6 @@ export function AppRoutes() {
         <Route element={<AppShell />}>
           <Route element={<DashboardPage />} path="/" />
           <Route
-            element={<PlaceholderPage title="Customers" />}
-            path="/customers"
-          />
-          <Route
             element={
               <ProtectedRoute
                 allowedRoles={[
@@ -30,6 +27,7 @@ export function AppRoutes() {
               />
             }
           >
+            <Route element={<CustomerListPage />} path="/customers" />
             <Route element={<AddCustomerPage />} path="/customers/new" />
             <Route
               element={<CustomerProfilePage />}

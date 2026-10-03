@@ -23,6 +23,9 @@ jest.mock('../pages/DashboardPage', () => ({
 jest.mock('../pages/Customers/AddCustomerPage', () => ({
   AddCustomerPage: () => <div>Add customer route</div>,
 }))
+jest.mock('../pages/Customers/CustomerListPage', () => ({
+  CustomerListPage: () => <div>Customer list route</div>,
+}))
 jest.mock('../pages/Customers/CustomerProfilePage', () => ({
   CustomerProfilePage: () => <div>Customer profile route</div>,
 }))
@@ -30,6 +33,7 @@ jest.mock('../pages/Customers/CustomerProfilePage', () => ({
 it.each([
   ['/login', 'Login route'],
   ['/', 'Dashboard route'],
+  ['/customers', 'Customer list route'],
   ['/customers/new', 'Add customer route'],
   ['/customers/44', 'Customer profile route'],
 ])('routes %s to its page', (path, content) => {
