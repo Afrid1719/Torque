@@ -16,8 +16,13 @@ const baseProps = {
   customers: [customer],
   error: null,
   isLoading: false,
+  onPageChange: jest.fn(),
+  onSearchChange: jest.fn(),
   onSelect: jest.fn(),
+  page: 1,
+  pageCount: 1,
   search: '',
+  totalCustomerCount: 1,
 }
 
 describe('CustomerListContent', () => {
@@ -26,20 +31,46 @@ describe('CustomerListContent', () => {
 
     expect(screen.getByText('Asha Rao')).toBeInTheDocument()
     expect(screen.getByText('9876543210')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'View profile' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open Asha Rao profile' }),
+    )
     expect(baseProps.onSelect).toHaveBeenCalledWith(44)
   })
 
   it('shows distinct empty states for an empty list and an empty search', () => {
     const { rerender } = render(
-      <CustomerListContent {...baseProps} customers={[]} />,
+      <CustomerListContent
+        {...baseProps}
+        customers={[]}
+        totalCustomerCount={0}
+      />,
     )
     expect(screen.getByText('No customers yet')).toBeInTheDocument()
 
     rerender(
-      <CustomerListContent {...baseProps} customers={[]} search="Asha" />,
+      <CustomerListContent
+        {...baseProps}
+        customers={[]}
+        search="Asha"
+        totalCustomerCount={0}
+      />,
     )
     expect(screen.getByText('No matching customers')).toBeInTheDocument()
+  })
+
+  it('paginates the available customer results', () => {
+    render(
+      <CustomerListContent
+        {...baseProps}
+        page={2}
+        pageCount={3}
+        totalCustomerCount={25}
+      />,
+    )
+
+    expect(screen.getByText('Showing 11-20 of 25 entries')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(baseProps.onPageChange).toHaveBeenCalledWith(1)
   })
 
   it('shows loading and error states', () => {

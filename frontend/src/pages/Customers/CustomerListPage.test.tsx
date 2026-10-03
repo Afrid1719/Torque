@@ -36,10 +36,13 @@ it('renders the customer list and accepts a name or mobile search value', () => 
 
   expect(screen.getByRole('heading', { name: 'Customers' })).toBeInTheDocument()
   expect(screen.getByText('Asha Rao')).toBeInTheDocument()
-  fireEvent.change(screen.getByLabelText('Search customers'), {
+  const searchInput = screen.getByRole('textbox', {
+    name: 'Search customers',
+  })
+  fireEvent.change(searchInput, {
     target: { value: '98765' },
   })
-  expect(screen.getByLabelText('Search customers')).toHaveValue('98765')
+  expect(searchInput).toHaveValue('98765')
   return waitFor(() =>
     expect(jest.mocked(useQuery)).toHaveBeenLastCalledWith(
       expect.objectContaining({

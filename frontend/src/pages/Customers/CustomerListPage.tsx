@@ -1,23 +1,21 @@
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
-import {
-  Box,
-  InputAdornment,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useDeferredValue, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link as RouterLink, useNavigate } from 'react-router'
 import { ApiError } from '@app/api/client'
 import { customerListQueryKey, getCustomers } from '@app/api/customers'
 import { useAuth } from '@app/hooks/useAuth'
 import { CustomerListContent } from '@app/pages/Customers/components/CustomerListContent'
+import { CustomerListSummary } from '@app/pages/Customers/components/CustomerListSummary'
+
+const customersPerPage = 10
 
 export function CustomerListPage() {
   const { accessToken } = useAuth()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const deferredSearch = useDeferredValue(search)
   const customerQuery = useQuery({
     enabled: Boolean(accessToken),
@@ -29,40 +27,60 @@ export function CustomerListPage() {
       ? customerQuery.error.message
       : 'Unable to load customers. Please try again.'
     : null
+  const customers = customerQuery.data ?? []
+  const pageCount = Math.max(1, Math.ceil(customers.length / customersPerPage))
+  const currentPage = Math.min(page, pageCount)
+  const visibleCustomers = customers.slice(
+    (currentPage - 1) * customersPerPage,
+    currentPage * customersPerPage,
+  )
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, sm: 3, lg: 4 } }}>
+    <Box sx={{ maxWidth: 1400, mx: 'auto', p: { xs: 2, sm: 3, lg: 4 } }}>
       <Stack spacing={3}>
-        <Box>
-          <Typography component="h1" variant="h4">
-            Customers
-          </Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
-            Find customer profiles before adding vehicles or creating job cards.
-          </Typography>
-        </Box>
-        <TextField
-          fullWidth
-          label="Search customers"
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by name or mobile number"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlinedIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            },
+        <Box
+          sx={{
+            alignItems: { sm: 'flex-end' },
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            justifyContent: 'space-between',
           }}
-          value={search}
-        />
+        >
+          <Box>
+            <Typography component="h1" variant="h5">
+              Customers
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
+              Manage your workshop&apos;s client database and service history.
+            </Typography>
+          </Box>
+          <Button
+            component={RouterLink}
+            startIcon={<PersonAddOutlinedIcon />}
+            to="/customers/new"
+            variant="contained"
+          >
+            Add New Customer
+          </Button>
+        </Box>
+        <CustomerListSummary customerCount={customers.length} />
         <CustomerListContent
-          customers={customerQuery.data ?? []}
+          customers={visibleCustomers}
           error={error}
           isLoading={customerQuery.isPending}
+          onPageChange={setPage}
+          onSearchChange={handleSearchChange}
           onSelect={(customerId) => navigate(`/customers/${customerId}`)}
+          page={currentPage}
+          pageCount={pageCount}
           search={search}
+          totalCustomerCount={customers.length}
         />
       </Stack>
     </Box>
