@@ -144,7 +144,19 @@ export function CustomerListContent({
       ) : (
         <TableContainer>
           <Table aria-label="Customers">
-            <TableHead>
+            <TableHead
+              sx={{
+                '& .MuiTableCell-root': {
+                  color: '#424754',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  lineHeight: '16px',
+                  py: 2,
+                  textTransform: 'uppercase',
+                },
+              }}
+            >
               <TableRow sx={{ bgcolor: '#f2f4f6' }}>
                 <TableCell>Customer Name</TableCell>
                 <TableCell>Contact Info</TableCell>
