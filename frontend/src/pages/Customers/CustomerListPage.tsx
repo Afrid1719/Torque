@@ -1,3 +1,4 @@
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
@@ -8,6 +9,7 @@ import { customerListQueryKey, getCustomers } from '@app/api/customers'
 import { useAuth } from '@app/hooks/useAuth'
 import { CustomerListContent } from '@app/pages/Customers/components/CustomerListContent'
 import { CustomerListSummary } from '@app/pages/Customers/components/CustomerListSummary'
+import { buildCustomerCsv } from '@app/utils/customers/customerExport'
 
 const customersPerPage = 10
 
@@ -40,6 +42,18 @@ export function CustomerListPage() {
     setPage(1)
   }
 
+  const handleExport = () => {
+    const file = new Blob([buildCustomerCsv(customers)], {
+      type: 'text/csv;charset=utf-8',
+    })
+    const url = URL.createObjectURL(file)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'customers.csv'
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <Box sx={{ maxWidth: 1400, mx: 'auto', p: { xs: 2, sm: 3, lg: 4 } }}>
       <Stack spacing={3}>
@@ -60,14 +74,24 @@ export function CustomerListPage() {
               Manage your workshop&apos;s client database and service history.
             </Typography>
           </Box>
-          <Button
-            component={RouterLink}
-            startIcon={<PersonAddOutlinedIcon />}
-            to="/customers/new"
-            variant="contained"
-          >
-            Add New Customer
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              disabled={customerQuery.isPending || customers.length === 0}
+              onClick={handleExport}
+              startIcon={<FileDownloadOutlinedIcon />}
+              variant="outlined"
+            >
+              Export List
+            </Button>
+            <Button
+              component={RouterLink}
+              startIcon={<PersonAddOutlinedIcon />}
+              to="/customers/new"
+              variant="contained"
+            >
+              Add New Customer
+            </Button>
+          </Stack>
         </Box>
         <CustomerListSummary customerCount={customers.length} />
         <CustomerListContent

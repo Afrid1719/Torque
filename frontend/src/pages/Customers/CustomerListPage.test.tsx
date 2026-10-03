@@ -51,3 +51,32 @@ it('renders the customer list and accepts a name or mobile search value', () => 
     ),
   )
 })
+
+it('exports the currently loaded customer list as CSV', () => {
+  const createObjectUrl = jest.fn(() => 'blob:customers')
+  const revokeObjectUrl = jest.fn()
+  const click = jest
+    .spyOn(HTMLAnchorElement.prototype, 'click')
+    .mockImplementation()
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: createObjectUrl,
+  })
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: revokeObjectUrl,
+  })
+
+  render(
+    <MemoryRouter>
+      <CustomerListPage />
+    </MemoryRouter>,
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: 'Export List' }))
+
+  expect(createObjectUrl).toHaveBeenCalledWith(expect.any(Blob))
+  expect(click).toHaveBeenCalled()
+  expect(revokeObjectUrl).toHaveBeenCalledWith('blob:customers')
+  click.mockRestore()
+})
