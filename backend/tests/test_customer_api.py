@@ -299,3 +299,137 @@ def test_missing_customer_returns_not_found(
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Customer not found."}
+
+
+@pytest.mark.parametrize("role_name", ["workshop_manager", "service_advisor"])
+def test_authorized_staff_can_update_customer(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    role_name: str,
+) -> None:
+    authenticate_as(monkeypatch, role_name)
+    customer = build_customer()
+    monkeypatch.setattr(
+        customer_api,
+        "get_customer_by_id",
+        AsyncMock(return_value=customer),
+    )
+    updated = build_customer()
+    updated.name = "Asha Sharma"
+    update = AsyncMock(return_value=updated)
+    monkeypatch.setattr(customer_api, "update_customer", update)
+
+    response = client.put(
+        "/api/v1/customers/23",
+        headers={"Authorization": f"Bearer {token()}"},
+        json={
+            "name": "Asha Sharma",
+            "mobile_number": "+91 98765-43210",
+            "email": "ASHA@example.com",
+            "address": "14 Market Road",
+            "notes": "Call before visiting",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Asha Sharma"
+    payload = update.await_args.args[2]
+    assert payload.mobile_number == "+919876543210"
+    assert payload.email == "asha@example.com"
+
+
+def test_update_customer_requires_authentication(client: TestClient) -> None:
+    response = client.put(
+        "/api/v1/customers/23",
+        json={"name": "Asha", "mobile_number": "9876543210"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_update_customer_validates_required_fields(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    update = AsyncMock()
+    monkeypatch.setattr(customer_api, "update_customer", update)
+
+    response = client.put(
+        "/api/v1/customers/23",
+        headers={"Authorization": f"Bearer {token()}"},
+        json={"name": " ", "mobile_number": "9876543210"},
+    )
+
+    assert response.status_code == 422
+    update.assert_not_awaited()
+
+
+def test_update_customer_returns_not_found(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    monkeypatch.setattr(
+        customer_api,
+        "get_customer_by_id",
+        AsyncMock(return_value=None),
+    )
+    update = AsyncMock()
+    monkeypatch.setattr(customer_api, "update_customer", update)
+
+    response = client.put(
+        "/api/v1/customers/999",
+        headers={"Authorization": f"Bearer {token()}"},
+        json={"name": "Asha", "mobile_number": "9876543210"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Customer not found."}
+    update.assert_not_awaited()
+
+
+def test_duplicate_mobile_number_on_update_returns_conflict(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    monkeypatch.setattr(
+        customer_api,
+        "get_customer_by_id",
+        AsyncMock(return_value=build_customer()),
+    )
+    monkeypatch.setattr(
+        customer_api,
+        "update_customer",
+        AsyncMock(side_effect=DuplicateMobileNumberError),
+    )
+
+    response = client.put(
+        "/api/v1/customers/23",
+        headers={"Authorization": f"Bearer {token()}"},
+        json={"name": "Asha", "mobile_number": "9876543210"},
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {
+        "detail": "A customer with this mobile number already exists."
+    }
+
+
+def test_mechanic_cannot_update_customer(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "mechanic")
+    lookup = AsyncMock()
+    monkeypatch.setattr(customer_api, "get_customer_by_id", lookup)
+
+    response = client.put(
+        "/api/v1/customers/23",
+        headers={"Authorization": f"Bearer {token()}"},
+        json={"name": "Asha", "mobile_number": "9876543210"},
+    )
+
+    assert response.status_code == 403
+    lookup.assert_not_awaited()

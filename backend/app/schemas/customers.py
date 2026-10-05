@@ -64,6 +64,10 @@ class CustomerCreate(BaseModel):
         return value.lower() if value is not None else None
 
 
+class CustomerUpdate(CustomerCreate):
+    """Complete replacement for a customer profile; required fields stay required."""
+
+
 class CustomerResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
