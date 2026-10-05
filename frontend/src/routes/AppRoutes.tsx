@@ -7,6 +7,7 @@ import { DashboardPage } from '@app/pages/DashboardPage'
 import { AddCustomerPage } from '@app/pages/Customers/AddCustomerPage'
 import { CustomerListPage } from '@app/pages/Customers/CustomerListPage'
 import { CustomerProfilePage } from '@app/pages/Customers/CustomerProfilePage'
+import { CustomerEditPage } from '@app/pages/Customers/CustomerEditPage'
 import { LoginPage } from '@app/pages/Login/Login'
 import { PlaceholderPage } from '@app/pages/PlaceholderPage'
 
@@ -32,6 +33,10 @@ export function AppRoutes() {
             <Route
               element={<CustomerProfilePage />}
               path="/customers/:customerId"
+            />
+            <Route
+              element={<CustomerEditPage />}
+              path="/customers/:customerId/edit"
             />
           </Route>
           <Route

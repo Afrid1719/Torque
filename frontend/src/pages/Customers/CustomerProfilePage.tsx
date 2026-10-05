@@ -8,7 +8,12 @@ import {
   Typography,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { Link as RouterLink, useLocation, useParams } from 'react-router'
+import {
+  Link as RouterLink,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router'
 import { ApiError } from '@app/api/client'
 import { customerQueryKey, getCustomer } from '@app/api/customers'
 import { useAuth } from '@app/hooks/useAuth'
@@ -25,11 +30,14 @@ export type { CustomerProfileState } from '@app/utils/customers/customerProfileM
 
 export function CustomerProfilePage() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { customerId } = useParams()
   const { accessToken } = useAuth()
   const navigationCustomer =
     (location.state as { customer?: CustomerProfileState } | null)?.customer ??
     null
+  const showUpdatedMessage =
+    (location.state as { updated?: boolean } | null)?.updated ?? false
   const customerQuery = useQuery({
     enabled: Boolean(accessToken && customerId),
     queryFn: () => getCustomer(accessToken!, customerId!),
@@ -92,10 +100,21 @@ export function CustomerProfilePage() {
         </Typography>
       </Breadcrumbs>
       <Stack spacing={3}>
+        {showUpdatedMessage && (
+          <Alert severity="success">
+            Customer details updated successfully.
+          </Alert>
+        )}
         {loadError && <Alert severity="warning">{loadError}</Alert>}
-        <CustomerProfileOverview customer={customer} />
+        <CustomerProfileOverview
+          customer={customer}
+          editPath={`/customers/${customer.id ?? customerId}/edit`}
+        />
         <CustomerStats />
-        <CustomerActivity notes={customer.notes ?? ''} />
+        <CustomerActivity
+          notes={customer.notes ?? ''}
+          onEditNotes={() => navigate(`/customers/${customer.id}/edit`)}
+        />
       </Stack>
     </Box>
   )

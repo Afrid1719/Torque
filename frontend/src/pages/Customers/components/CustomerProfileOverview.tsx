@@ -8,11 +8,11 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   IconButton,
   Stack,
   Typography,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router'
 import {
   customerInitials,
   type CustomerProfileState,
@@ -20,9 +20,19 @@ import {
 
 export function CustomerProfileOverview({
   customer,
+  editPath,
 }: {
   customer: CustomerProfileState
+  editPath: string
 }) {
+  const customerSince = customer.createdAt
+    ? new Date(customer.createdAt).toLocaleDateString('en', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : null
+
   return (
     <Card component="section" variant="outlined">
       <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: 3 } }}>
@@ -48,14 +58,15 @@ export function CustomerProfileOverview({
                 <Typography component="h1" variant="h4">
                   {customer.name}
                 </Typography>
-                <Chip color="success" label="NEW CUSTOMER" size="small" />
               </Stack>
               <Typography
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
                 variant="body2"
               >
-                Customer profile created today
+                {customerSince
+                  ? `Customer since ${customerSince}`
+                  : 'Customer profile'}
               </Typography>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
@@ -95,7 +106,12 @@ export function CustomerProfileOverview({
             </Box>
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button startIcon={<EditOutlinedIcon />} variant="outlined">
+            <Button
+              component={RouterLink}
+              startIcon={<EditOutlinedIcon />}
+              to={editPath}
+              variant="outlined"
+            >
               Edit Profile
             </Button>
             <IconButton aria-label="More customer actions" color="primary">

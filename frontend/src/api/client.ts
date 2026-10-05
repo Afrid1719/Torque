@@ -152,3 +152,19 @@ export function postJson<TResponse, TRequest>(
     body: JSON.stringify(body),
   })
 }
+
+export function putJson<TResponse, TRequest>(
+  path: string,
+  body: TRequest,
+  options: ApiRequestOptions = {},
+): Promise<TResponse> {
+  const headers = new Headers(options.headers)
+  headers.set('Content-Type', 'application/json')
+
+  return requestJson<TResponse>(path, {
+    ...options,
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  })
+}
