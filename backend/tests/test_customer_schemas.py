@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.customers import CustomerCreate
+from app.schemas.customers import CustomerCreate, CustomerUpdate
 
 
 def test_customer_create_normalizes_input() -> None:
@@ -59,3 +59,8 @@ def test_customer_create_converts_blank_optional_fields_to_none() -> None:
 
     assert payload.address is None
     assert payload.notes is None
+
+
+def test_customer_update_requires_valid_required_fields() -> None:
+    with pytest.raises(ValidationError):
+        CustomerUpdate.model_validate({"name": "Asha Rao"})
