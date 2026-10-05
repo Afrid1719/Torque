@@ -1,4 +1,4 @@
-import { getJson, postJson } from '@app/api/client'
+import { getJson, postJson, putJson } from '@app/api/client'
 import { API_V1_PREFIX } from '@app/api/constants'
 
 export type Customer = {
@@ -20,6 +20,8 @@ export type CreateCustomerRequest = {
   notes: string | null
 }
 
+export type UpdateCustomerRequest = CreateCustomerRequest
+
 export const customerQueryKey = (customerId: string | number) =>
   ['customer', String(customerId)] as const
 
@@ -32,6 +34,18 @@ export function createCustomer(
 ): Promise<Customer> {
   return postJson<Customer, CreateCustomerRequest>(
     `${API_V1_PREFIX}/customers`,
+    payload,
+    { accessToken },
+  )
+}
+
+export function updateCustomer(
+  accessToken: string,
+  customerId: string,
+  payload: UpdateCustomerRequest,
+): Promise<Customer> {
+  return putJson<Customer, UpdateCustomerRequest>(
+    `${API_V1_PREFIX}/customers/${encodeURIComponent(customerId)}`,
     payload,
     { accessToken },
   )

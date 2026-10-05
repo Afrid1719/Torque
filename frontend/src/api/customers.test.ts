@@ -1,13 +1,18 @@
-import { getJson, postJson } from './client'
+import { getJson, postJson, putJson } from './client'
 import {
   createCustomer,
   customerListQueryKey,
   customerQueryKey,
   getCustomer,
   getCustomers,
+  updateCustomer,
 } from './customers'
 
-jest.mock('./client', () => ({ getJson: jest.fn(), postJson: jest.fn() }))
+jest.mock('./client', () => ({
+  getJson: jest.fn(),
+  postJson: jest.fn(),
+  putJson: jest.fn(),
+}))
 
 it('builds a stable customer query key', () => {
   expect(customerQueryKey('44')).toEqual(['customer', '44'])
@@ -44,6 +49,24 @@ it('gets and creates customers with authentication', async () => {
   })
   expect(postJson).toHaveBeenLastCalledWith(
     '/api/v1/customers',
+    expect.objectContaining({ name: 'John' }),
+    { accessToken: 'token' },
+  )
+})
+
+it('updates customers with authentication and the customer ID', async () => {
+  jest.mocked(putJson).mockResolvedValue({ id: 44 } as never)
+
+  await updateCustomer('token', '44', {
+    address: 'Pune',
+    email: 'john@mail.com',
+    mobile_number: '9876543210',
+    name: 'John',
+    notes: 'Call first',
+  })
+
+  expect(putJson).toHaveBeenCalledWith(
+    '/api/v1/customers/44',
     expect.objectContaining({ name: 'John' }),
     { accessToken: 'token' },
   )

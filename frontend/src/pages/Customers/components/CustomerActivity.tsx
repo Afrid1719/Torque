@@ -15,7 +15,13 @@ import {
   Typography,
 } from '@mui/material'
 
-export function CustomerActivity({ notes }: { notes: string }) {
+export function CustomerActivity({
+  notes,
+  onEditNotes,
+}: {
+  notes: string
+  onEditNotes?: () => void
+}) {
   return (
     <Box
       component="section"
@@ -51,7 +57,11 @@ export function CustomerActivity({ notes }: { notes: string }) {
           <CardHeader
             avatar={<NotesOutlinedIcon color="primary" />}
             action={
-              <IconButton aria-label="Edit workshop notes" size="small">
+              <IconButton
+                aria-label="Edit workshop notes"
+                onClick={onEditNotes}
+                size="small"
+              >
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             }
