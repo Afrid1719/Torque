@@ -6,6 +6,7 @@ from app.db.models.auth import (
     role_permissions,
 )
 from app.db.models.customers import Customer
+from app.db.models.vehicles import Vehicles
 from app.db.models.migration_check import MigrationCheck
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "User",
     "UserSession",
     "role_permissions",
+    "Vehicles"
 ]
