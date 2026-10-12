@@ -33,7 +33,6 @@ def upgrade() -> None:
     sa.Column('vin', sa.String(length=20), nullable=False),
     sa.Column('odometer', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('chassis_number', sa.String(length=20), nullable=True),
     sa.Column('manufacture_year', sa.Integer(), nullable=True),
     sa.Column('engine_capacity', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

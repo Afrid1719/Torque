@@ -13,6 +13,7 @@ from app.core.tokens import create_access_token
 from app.db.models import Customer, Role, User
 from app.db.session import get_db_session
 from app.main import app
+from app.schemas.vehicles import VehicleCreateResponse
 from app.services.customers import DuplicateMobileNumberError
 
 TEST_SETTINGS = Settings(
@@ -72,6 +73,42 @@ def build_customer_list() -> list[Customer]:
             updated_at=NOW,
         ),
     ]
+
+
+def build_vehicle_response() -> VehicleCreateResponse:
+    return VehicleCreateResponse(
+        id=42,
+        registration_number="MH12AB1234",
+        make="MARUTI",
+        model="SWIFT",
+        variant="VXI",
+        vehicle_type="PRIVATE",
+        fuel_type="PETROL",
+        transmission="MANUAL",
+        color="WHITE",
+        vin="1HGCM82633A004352",
+        odometer=25000,
+        is_active=True,
+        manufacture_year=2022,
+        engine_capacity=1197,
+    )
+
+
+def vehicle_payload() -> dict[str, object]:
+    return {
+        "registration_number": "MH12AB1234",
+        "make": "Maruti",
+        "model": "Swift",
+        "variant": "VXI",
+        "vehicle_type": "private",
+        "fuel_type": "petrol",
+        "transmission": "manual",
+        "color": "White",
+        "vin": "1HGCM82633A004352",
+        "odometer": 25000,
+        "manufacture_year": 2022,
+        "engine_capacity": 1197,
+    }
 
 
 def token() -> str:
@@ -433,3 +470,113 @@ def test_mechanic_cannot_update_customer(
 
     assert response.status_code == 403
     lookup.assert_not_awaited()
+
+
+@pytest.mark.parametrize("role_name", ["workshop_manager", "service_advisor"])
+def test_authorized_staff_can_add_vehicle_to_customer(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    role_name: str,
+) -> None:
+    authenticate_as(monkeypatch, role_name)
+    customer_lookup = AsyncMock(return_value=build_customer())
+    create_vehicle = AsyncMock(return_value=build_vehicle_response())
+    monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
+    monkeypatch.setattr(customer_api, "create_vehicle", create_vehicle)
+
+    response = client.post(
+        "/api/v1/customers/23/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["id"] == 42
+    assert response.json()["registration_number"] == "MH12AB1234"
+    customer_lookup.assert_awaited_once()
+    assert customer_lookup.await_args is not None
+    assert customer_lookup.await_args.args[1] == 23
+    create_vehicle.assert_awaited_once()
+    assert create_vehicle.await_args is not None
+    session, payload, customer_id = create_vehicle.await_args.args
+    assert session is not None
+    assert payload.registration_number == "MH12AB1234"
+    assert customer_id == 23
+
+
+def test_add_vehicle_to_missing_customer_returns_not_found(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    monkeypatch.setattr(
+        customer_api,
+        "get_customer_by_id",
+        AsyncMock(return_value=None),
+    )
+    create_vehicle = AsyncMock()
+    monkeypatch.setattr(customer_api, "create_vehicle", create_vehicle)
+
+    response = client.post(
+        "/api/v1/customers/999/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Customer not found."}
+    create_vehicle.assert_not_awaited()
+
+
+def test_add_vehicle_to_customer_rejects_invalid_payload(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    customer_lookup = AsyncMock(return_value=build_customer())
+    monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
+    create_vehicle = AsyncMock()
+    monkeypatch.setattr(customer_api, "create_vehicle", create_vehicle)
+    payload = vehicle_payload()
+    payload["odometer"] = 0
+
+    response = client.post(
+        "/api/v1/customers/23/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+        json=payload,
+    )
+
+    assert response.status_code == 422
+    customer_lookup.assert_not_awaited()
+    create_vehicle.assert_not_awaited()
+
+
+def test_add_vehicle_to_customer_requires_authentication(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/customers/23/vehicles",
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 401
+
+
+def test_mechanic_cannot_add_vehicle_to_customer(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "mechanic")
+    customer_lookup = AsyncMock()
+    monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
+    create_vehicle = AsyncMock()
+    monkeypatch.setattr(customer_api, "create_vehicle", create_vehicle)
+
+    response = client.post(
+        "/api/v1/customers/23/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Insufficient permissions."}
+    customer_lookup.assert_not_awaited()
+    create_vehicle.assert_not_awaited()

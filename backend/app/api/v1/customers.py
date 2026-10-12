@@ -9,11 +9,13 @@ from app.db.models import User
 from app.db.session import get_db_session
 from app.repositories.customers import get_customer_by_id, list_customers
 from app.schemas.customers import CustomerCreate, CustomerResponse, CustomerUpdate
+from app.schemas.vehicles import VehicleCreate, VehicleCreateResponse
 from app.services.customers import (
     DuplicateMobileNumberError,
     create_customer,
     update_customer,
 )
+from app.services.vehicles import create_vehicle
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -125,3 +127,30 @@ async def edit_customer(
             detail="A customer with this mobile number already exists.",
         ) from exc
     return CustomerResponse.model_validate(customer)
+
+
+@router.post(
+    "/{customer_id}/vehicles",
+    response_model=VehicleCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "Forbidden"},
+        status.HTTP_404_NOT_FOUND: {"description": "Customer not found"},
+        status.HTTP_409_CONFLICT: {
+            "description": "Vehicle registration number already exists"
+        },
+    },
+)
+async def add_vehicles_to_customer(
+    customer_id: int,
+    payload: VehicleCreate,
+    _current_user: CustomerStaffUser,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> VehicleCreateResponse:
+    customer = await get_customer_by_id(session, customer_id)
+    if customer is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found."
+        )
+    return await create_vehicle(session, payload, customer_id)

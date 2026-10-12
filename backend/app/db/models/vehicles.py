@@ -22,7 +22,7 @@ def _enum_check_constraint(
     )
 
 
-class Vehicles(TimestampMixin, Base):
+class Vehicle(TimestampMixin, Base):
     __tablename__ = "vehicles"
     __table_args__ = (
         _enum_check_constraint(
@@ -54,7 +54,9 @@ class Vehicles(TimestampMixin, Base):
             ondelete="SET NULL",
         ),
     )
-    registration_number: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
+    registration_number: Mapped[str] = mapped_column(
+        String(10), nullable=False, unique=True
+    )
     make: Mapped[str] = mapped_column(String(20), nullable=False)
     model: Mapped[str] = mapped_column(String(30), nullable=False)
     variant: Mapped[str] = mapped_column(String(45), nullable=False)
@@ -65,7 +67,5 @@ class Vehicles(TimestampMixin, Base):
     vin: Mapped[str] = mapped_column(String(20), nullable=False)
     odometer: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
-    chassis_number: Mapped[str | None] = mapped_column(String(20))
     manufacture_year: Mapped[int | None] = mapped_column(Integer)
     engine_capacity: Mapped[int | None] = mapped_column(Integer)
-    
