@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class VehicleTypeEnum(StrEnum):
     PRIVATE = "private"
     COMMERCIAL = "commercial"
