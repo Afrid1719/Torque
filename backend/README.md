@@ -61,6 +61,25 @@ To verify connectivity:
 TORQUE uses Alembic for controlled database schema changes.
 FastAPI startup does not create or recreate database tables automatically.
 
+### Adding or changing a model
+
+Define each SQLAlchemy model as a subclass of `Base` from `app/db/base.py`.
+Import the model in `app/db/models/__init__.py` so the import of
+`app.db.models` in `migrations/env.py` registers its table in `Base.metadata`.
+Alembic uses that metadata to compare the models with the current database
+schema when generating migrations.
+
+From the `backend` directory, create a migration after adding or changing a
+model:
+
+```bash
+alembic revision --autogenerate -m "describe schema change"
+```
+
+Autogenerate is a starting point, not a substitute for reviewing the migration.
+Check that it includes the intended changes and constraints, and edit it when
+needed before applying it with `alembic upgrade head`.
+
 Run migration commands from the `backend` directory:
 
 ```bash

@@ -8,6 +8,7 @@ click==8.4.2
 cffi==2.1.0
 colorama==0.4.6
 coverage==7.15.1
+cryptography==50.0.2
 fastapi==0.139.0
 aiomysql==0.3.2
 h11==0.16.0
