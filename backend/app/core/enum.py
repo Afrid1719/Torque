@@ -5,12 +5,14 @@ class VehicleTypeEnum(StrEnum):
     PRIVATE = "private"
     COMMERCIAL = "commercial"
 
+
 class FuelTypeEnum(StrEnum):
     PETROL = "petrol"
     DIESEL = "diesel"
     EV = "ev"
     CNG = "cng"
     HYBRID = "hybrid"
+
 
 class TransmissionEnum(StrEnum):
     MANUAL = "manual"
