@@ -49,3 +49,20 @@ MechanicUser = Annotated[
     User,
     Depends(require_roles(RoleName.MECHANIC)),
 ]
+CustomerStaffUser = Annotated[
+    User,
+    Depends(
+        require_roles(
+            RoleName.WORKSHOP_MANAGER,
+            RoleName.SERVICE_ADVISOR,
+        )
+    ),
+]
+AllUser = Annotated[
+    User,
+    Depends(
+        require_roles(
+            RoleName.WORKSHOP_MANAGER, RoleName.SERVICE_ADVISOR, RoleName.MECHANIC
+        )
+    ),
+]

@@ -580,3 +580,57 @@ def test_mechanic_cannot_add_vehicle_to_customer(
     assert response.json() == {"detail": "Insufficient permissions."}
     customer_lookup.assert_not_awaited()
     create_vehicle.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "role_name",
+    ["workshop_manager", "service_advisor", "mechanic"],
+)
+def test_all_authenticated_roles_can_list_customer_vehicles(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    role_name: str,
+) -> None:
+    authenticate_as(monkeypatch, role_name)
+    customer_lookup = AsyncMock(return_value=build_customer())
+    list_vehicles = AsyncMock(return_value=[build_vehicle_response()])
+    monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
+    monkeypatch.setattr(customer_api, "get_vehicles_by_customer_id", list_vehicles)
+
+    response = client.get(
+        "/api/v1/customers/23/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 200
+    assert [vehicle["id"] for vehicle in response.json()] == [42]
+    customer_lookup.assert_awaited_once()
+    list_vehicles.assert_awaited_once()
+    assert list_vehicles.await_args is not None
+    assert list_vehicles.await_args.args[1] == 23
+
+
+def test_list_customer_vehicles_returns_not_found_for_missing_customer(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "mechanic")
+    customer_lookup = AsyncMock(return_value=None)
+    list_vehicles = AsyncMock()
+    monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
+    monkeypatch.setattr(customer_api, "get_vehicles_by_customer_id", list_vehicles)
+
+    response = client.get(
+        "/api/v1/customers/404/vehicles",
+        headers={"Authorization": f"Bearer {token()}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Customer not found."}
+    list_vehicles.assert_not_awaited()
+
+
+def test_list_customer_vehicles_requires_authentication(client: TestClient) -> None:
+    response = client.get("/api/v1/customers/23/vehicles")
+
+    assert response.status_code == 401
