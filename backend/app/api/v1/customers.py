@@ -3,11 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies.authorization import require_roles
-from app.core.roles import RoleName
-from app.db.models import User
+from app.api.dependencies.authorization import AllUser, CustomerStaffUser
 from app.db.session import get_db_session
 from app.repositories.customers import get_customer_by_id, list_customers
+from app.repositories.vehicles import get_vehicles_by_customer_id
 from app.schemas.customers import CustomerCreate, CustomerResponse, CustomerUpdate
 from app.schemas.vehicles import VehicleCreate, VehicleCreateResponse
 from app.services.customers import (
@@ -18,16 +17,6 @@ from app.services.customers import (
 from app.services.vehicles import create_vehicle
 
 router = APIRouter(prefix="/customers", tags=["customers"])
-
-CustomerStaffUser = Annotated[
-    User,
-    Depends(
-        require_roles(
-            RoleName.WORKSHOP_MANAGER,
-            RoleName.SERVICE_ADVISOR,
-        )
-    ),
-]
 
 
 @router.get(
@@ -154,3 +143,29 @@ async def add_vehicles_to_customer(
             status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found."
         )
     return await create_vehicle(session, payload, customer_id)
+
+
+@router.get(
+    "/{customer_id}/vehicles",
+    response_model=list[VehicleCreateResponse],
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "Forbidden"},
+        status.HTTP_404_NOT_FOUND: {"description": "Customer not found"},
+    },
+)
+async def list_customer_vehicles(
+    customer_id: int,
+    _current_user: AllUser,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> list[VehicleCreateResponse]:
+    customer = await get_customer_by_id(session, customer_id)
+    if customer is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found."
+        )
+    return [
+        VehicleCreateResponse.model_validate(vehicle)
+        for vehicle in await get_vehicles_by_customer_id(session, customer_id)
+    ]
