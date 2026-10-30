@@ -44,6 +44,18 @@ def test_vehicle_registration_number_is_unique_and_required() -> None:
     assert table.c.registration_number.nullable is False
 
 
+def test_vehicle_vin_is_unique_and_required() -> None:
+    table = Base.metadata.tables["vehicles"]
+    unique_constraints = {
+        tuple(column.name for column in constraint.columns)
+        for constraint in table.constraints
+        if isinstance(constraint, UniqueConstraint)
+    }
+
+    assert ("vin",) in unique_constraints
+    assert table.c.vin.nullable is False
+
+
 def test_vehicle_customer_reference_sets_null_on_delete() -> None:
     table = Base.metadata.tables["vehicles"]
     foreign_key = next(

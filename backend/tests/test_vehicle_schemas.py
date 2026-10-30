@@ -32,6 +32,18 @@ def test_vehicle_create_accepts_valid_payload_and_applies_defaults() -> None:
     assert vehicle.is_active is True
 
 
+@pytest.mark.parametrize("registration_number", ["26BH1234A", "26BH1234AB"])
+def test_vehicle_create_accepts_bharat_series_registration_numbers(
+    registration_number: str,
+) -> None:
+    data = valid_vehicle_data()
+    data["registration_number"] = registration_number
+
+    vehicle = VehicleCreate.model_validate(data)
+
+    assert vehicle.registration_number == registration_number
+
+
 def test_vehicle_create_normalizes_text_fields() -> None:
     data = valid_vehicle_data()
     data.update(

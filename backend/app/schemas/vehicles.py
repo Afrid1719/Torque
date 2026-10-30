@@ -76,7 +76,7 @@ class VehicleCreate(BaseModel):
     def validate_registration(cls, value: str) -> str:
         if not re.compile(r"^[A-Z]{2}\d{2}[A-Z]{1,3}\d{3,4}$").match(
             value
-        ) and not re.compile(r"^\d{2}BH[A-Z]\d{4}[A-Z]{2}$").match(value):
+        ) and not re.compile(r"^\d{2}BH\d{4}[A-Z]{1,2}$").match(value):
             raise ValueError("Invalid registration format")
         return value
 
