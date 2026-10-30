@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.db.models.vehicles import Vehicle
 from app.schemas.vehicles import VehicleCreate
-from app.services.vehicles import create_vehicle
+from app.services.vehicles import create_vehicle, update_vehicle
 
 
 def build_session() -> AsyncMock:
@@ -82,6 +82,45 @@ def test_create_vehicle_rolls_back_and_reraises_other_database_errors() -> None:
 
     with pytest.raises(SQLAlchemyError) as exc_info:
         asyncio.run(create_vehicle(session, build_payload(), customer_id=23))
+
+    assert exc_info.value is error
+    session.rollback.assert_awaited_once()
+    session.refresh.assert_not_awaited()
+
+
+def test_update_vehicle_updates_fields_commits_and_refreshes() -> None:
+    session = build_session()
+    vehicle = Vehicle(id=42, **build_payload().model_dump())
+    payload = build_payload()
+    payload.make = "HONDA"
+    payload.odometer = 30000
+
+    result = asyncio.run(update_vehicle(session, vehicle, payload))
+
+    assert result is vehicle
+    assert result.make == "HONDA"
+    assert result.odometer == 30000
+    session.commit.assert_awaited_once()
+    session.refresh.assert_awaited_once_with(vehicle)
+    session.rollback.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        IntegrityError("statement", {}, Exception()),
+        SQLAlchemyError("database unavailable"),
+    ],
+)
+def test_update_vehicle_rolls_back_and_reraises_database_errors(
+    error: SQLAlchemyError,
+) -> None:
+    session = build_session()
+    session.commit.side_effect = error
+    vehicle = Vehicle(id=42, **build_payload().model_dump())
+
+    with pytest.raises(type(error)) as exc_info:
+        asyncio.run(update_vehicle(session, vehicle, build_payload()))
 
     assert exc_info.value is error
     session.rollback.assert_awaited_once()

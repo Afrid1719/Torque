@@ -14,6 +14,7 @@ from app.db.models import Role, User
 from app.db.session import get_db_session
 from app.main import app
 from app.schemas.vehicles import VehicleCreateResponse
+from app.services.vehicles import DuplicateRegistrationVinError
 
 TEST_SETTINGS = Settings(
     APP_ENV="testing",
@@ -282,3 +283,114 @@ def test_fetch_missing_vehicle_returns_not_found(
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Vehicle not found."}
+
+
+def test_authorized_staff_can_update_vehicle(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    vehicle = build_vehicle_response()
+    lookup = AsyncMock(return_value=vehicle)
+    update = AsyncMock(return_value=vehicle)
+    monkeypatch.setattr(vehicle_api, "get_vehicle_by_id", lookup)
+    monkeypatch.setattr(vehicle_api, "update_vehicle", update)
+    data = vehicle_payload()
+    data["make"] = "Honda"
+
+    response = client.put(
+        "/api/v1/vehicles/42",
+        headers=authorization_header(),
+        json=data,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == 42
+    lookup.assert_awaited_once()
+    assert lookup.await_args is not None
+    assert lookup.await_args.args[1] == 42
+    update.assert_awaited_once()
+    assert update.await_args is not None
+    assert update.await_args.args[1] is vehicle
+    assert update.await_args.args[2].make == "HONDA"
+
+
+def test_update_duplicate_registration_or_vin_returns_conflict(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    vehicle = build_vehicle_response()
+    lookup = AsyncMock(return_value=vehicle)
+    update = AsyncMock(
+        side_effect=DuplicateRegistrationVinError("duplicate registration or VIN")
+    )
+    monkeypatch.setattr(vehicle_api, "get_vehicle_by_id", lookup)
+    monkeypatch.setattr(vehicle_api, "update_vehicle", update)
+
+    response = client.put(
+        "/api/v1/vehicles/42",
+        headers=authorization_header(),
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Registration/Vin number already exists"}
+    update.assert_awaited_once()
+
+
+def test_update_missing_vehicle_returns_not_found(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "service_advisor")
+    lookup = AsyncMock(return_value=None)
+    update = AsyncMock()
+    monkeypatch.setattr(vehicle_api, "get_vehicle_by_id", lookup)
+    monkeypatch.setattr(vehicle_api, "update_vehicle", update)
+
+    response = client.put(
+        "/api/v1/vehicles/404",
+        headers=authorization_header(),
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Vehicle not found."}
+    update.assert_not_awaited()
+
+
+def test_mechanic_cannot_update_vehicle(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authenticate_as(monkeypatch, "mechanic")
+    lookup = AsyncMock()
+    update = AsyncMock()
+    monkeypatch.setattr(vehicle_api, "get_vehicle_by_id", lookup)
+    monkeypatch.setattr(vehicle_api, "update_vehicle", update)
+
+    response = client.put(
+        "/api/v1/vehicles/42",
+        headers=authorization_header(),
+        json=vehicle_payload(),
+    )
+
+    assert response.status_code == 403
+    lookup.assert_not_awaited()
+    update.assert_not_awaited()
+
+
+def test_cors_preflight_allows_put_and_delete(client: TestClient) -> None:
+    response = client.options(
+        "/api/v1/vehicles/42",
+        headers={
+            "Origin": TEST_SETTINGS.cors_origins[0],
+            "Access-Control-Request-Method": "PUT",
+        },
+    )
+
+    assert response.status_code == 200
+    allowed_methods = response.headers["access-control-allow-methods"]
+    assert "PUT" in allowed_methods
+    assert "DELETE" in allowed_methods

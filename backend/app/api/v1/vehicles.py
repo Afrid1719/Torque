@@ -7,7 +7,7 @@ from app.api.dependencies.authorization import CustomerStaffUser
 from app.db.session import get_db_session
 from app.repositories.vehicles import get_vehicle_by_id, list_vehicles
 from app.schemas.vehicles import VehicleCreate, VehicleCreateResponse
-from app.services.vehicles import create_vehicle
+from app.services.vehicles import create_vehicle, update_vehicle
 
 router = APIRouter(prefix="/vehicles", tags=["vehicles"])
 
@@ -76,3 +76,37 @@ async def fetch_vehicle_by_id(
             detail="Vehicle not found.",
         )
     return VehicleCreateResponse.model_validate(vehicle)
+
+
+@router.put(
+    "/{vehicle_id}",
+    response_model=VehicleCreateResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "Forbidden"},
+        status.HTTP_404_NOT_FOUND: {"description": "Vehicle not found"},
+        status.HTTP_409_CONFLICT: {
+            "description": "Registration/Vin number already exists"
+        },
+    },
+)
+async def edit_vehicle(
+    vehicle_id: int,
+    payload: VehicleCreate,
+    _current_user: CustomerStaffUser,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> VehicleCreateResponse:
+    vehicle = await get_vehicle_by_id(session, vehicle_id)
+    if vehicle is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found."
+        )
+    try:
+        res = await update_vehicle(session, vehicle, payload)
+        return VehicleCreateResponse.model_validate(res)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Registration/Vin number already exists",
+        ) from exc

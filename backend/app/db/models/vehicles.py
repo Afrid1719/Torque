@@ -64,7 +64,7 @@ class Vehicle(TimestampMixin, Base):
     fuel_type: Mapped[str] = mapped_column(String(10), nullable=False)
     transmission: Mapped[str] = mapped_column(String(15), nullable=False)
     color: Mapped[str] = mapped_column(String(30), nullable=False)
-    vin: Mapped[str] = mapped_column(String(20), nullable=False)
+    vin: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
     odometer: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     manufacture_year: Mapped[int | None] = mapped_column(Integer)
