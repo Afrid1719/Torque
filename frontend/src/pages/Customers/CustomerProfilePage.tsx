@@ -113,6 +113,11 @@ export function CustomerProfilePage() {
         <CustomerStats />
         <CustomerActivity
           notes={customer.notes ?? ''}
+          onAddVehicle={() =>
+            navigate(`/customers/${customer.id ?? customerId}/vehicles/new`, {
+              state: { customer },
+            })
+          }
           onEditNotes={() => navigate(`/customers/${customer.id}/edit`)}
         />
       </Stack>

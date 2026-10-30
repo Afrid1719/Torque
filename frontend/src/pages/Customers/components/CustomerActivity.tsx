@@ -17,9 +17,11 @@ import {
 
 export function CustomerActivity({
   notes,
+  onAddVehicle,
   onEditNotes,
 }: {
   notes: string
+  onAddVehicle?: () => void
   onEditNotes?: () => void
 }) {
   return (
@@ -35,7 +37,11 @@ export function CustomerActivity({
         <Card variant="outlined">
           <CardHeader
             action={
-              <Button size="small" startIcon={<AddCircleOutlineIcon />}>
+              <Button
+                onClick={onAddVehicle}
+                size="small"
+                startIcon={<AddCircleOutlineIcon />}
+              >
                 Add New
               </Button>
             }
