@@ -6,7 +6,11 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.db.models.vehicles import Vehicle
 from app.schemas.vehicles import VehicleCreate
-from app.services.vehicles import create_vehicle, update_vehicle
+from app.services.vehicles import (
+    DuplicateRegistrationVinError,
+    create_vehicle,
+    update_vehicle,
+)
 
 
 def build_session() -> AsyncMock:
@@ -106,22 +110,26 @@ def test_update_vehicle_updates_fields_commits_and_refreshes() -> None:
 
 
 @pytest.mark.parametrize(
-    "error",
+    ("error", "expected_exception"),
     [
-        IntegrityError("statement", {}, Exception()),
-        SQLAlchemyError("database unavailable"),
+        (
+            IntegrityError("statement", {}, Exception()),
+            DuplicateRegistrationVinError,
+        ),
+        (SQLAlchemyError("database unavailable"), SQLAlchemyError),
     ],
 )
 def test_update_vehicle_rolls_back_and_reraises_database_errors(
     error: SQLAlchemyError,
+    expected_exception: type[Exception],
 ) -> None:
     session = build_session()
     session.commit.side_effect = error
     vehicle = Vehicle(id=42, **build_payload().model_dump())
 
-    with pytest.raises(type(error)) as exc_info:
+    with pytest.raises(expected_exception) as exc_info:
         asyncio.run(update_vehicle(session, vehicle, build_payload()))
 
-    assert exc_info.value is error
+    assert exc_info.value is error or exc_info.value.__cause__ is error
     session.rollback.assert_awaited_once()
     session.refresh.assert_not_awaited()
