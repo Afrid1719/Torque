@@ -13,6 +13,15 @@ it('renders the vehicle registration sections and static customer details', () =
   expect(
     screen.getByRole('heading', { name: 'Register Vehicle' }),
   ).toBeInTheDocument()
+  expect(screen.getByText('New Vehicle')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Customers' })).toHaveAttribute(
+    'href',
+    '/customers',
+  )
+  expect(screen.getByRole('link', { name: 'Robert Harrison' })).toHaveAttribute(
+    'href',
+    '/customers/9842',
+  )
   expect(
     screen.getByRole('heading', {
       name: '2. Identification & Vehicle Specifications',
@@ -54,4 +63,31 @@ it('shows local feedback when saving a draft', () => {
   fireEvent.click(screen.getAllByRole('button', { name: 'Save as Draft' })[0])
 
   expect(screen.getByText('Draft saved locally.')).toBeInTheDocument()
+})
+
+it('keeps the VIN scan action available inside its field', () => {
+  render(
+    <MemoryRouter>
+      <RegisterVehiclePage />
+    </MemoryRouter>,
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: 'Scan' }))
+
+  expect(
+    screen.getByText('VIN decoder has no live connection in this preview.'),
+  ).toBeInTheDocument()
+})
+
+it('allows selecting each fuel or powertrain option', () => {
+  render(
+    <MemoryRouter>
+      <RegisterVehiclePage />
+    </MemoryRouter>,
+  )
+
+  const dieselOption = screen.getByRole('button', { name: 'Diesel' })
+  fireEvent.click(dieselOption)
+
+  expect(dieselOption).toHaveAttribute('aria-pressed', 'true')
 })
