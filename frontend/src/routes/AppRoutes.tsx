@@ -10,6 +10,7 @@ import { CustomerProfilePage } from '@app/pages/Customers/CustomerProfilePage'
 import { CustomerEditPage } from '@app/pages/Customers/CustomerEditPage'
 import { LoginPage } from '@app/pages/Login/Login'
 import { PlaceholderPage } from '@app/pages/PlaceholderPage'
+import { RegisterVehiclePage } from '@app/pages/Vehicles/RegisterVehiclePage'
 
 export function AppRoutes() {
   return (
@@ -38,11 +39,12 @@ export function AppRoutes() {
               element={<CustomerEditPage />}
               path="/customers/:customerId/edit"
             />
+            <Route
+              element={<RegisterVehiclePage />}
+              path="/customers/:customerId/vehicles/new"
+            />
           </Route>
-          <Route
-            element={<PlaceholderPage title="Vehicles" />}
-            path="/vehicles"
-          />
+          <Route element={<RegisterVehiclePage />} path="/vehicles" />
           <Route
             element={<PlaceholderPage title="Job Cards" />}
             path="/job-cards"

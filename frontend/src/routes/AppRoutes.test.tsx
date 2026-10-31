@@ -29,6 +29,9 @@ jest.mock('../pages/Customers/CustomerListPage', () => ({
 jest.mock('../pages/Customers/CustomerProfilePage', () => ({
   CustomerProfilePage: () => <div>Customer profile route</div>,
 }))
+jest.mock('../pages/Vehicles/RegisterVehiclePage', () => ({
+  RegisterVehiclePage: () => <h1>Register Vehicle</h1>,
+}))
 
 it.each([
   ['/login', 'Login route'],
@@ -36,11 +39,17 @@ it.each([
   ['/customers', 'Customer list route'],
   ['/customers/new', 'Add customer route'],
   ['/customers/44', 'Customer profile route'],
+  ['/vehicles', 'Register Vehicle'],
+  ['/customers/44/vehicles/new', 'Register Vehicle'],
 ])('routes %s to its page', (path, content) => {
   render(
     <MemoryRouter initialEntries={[path]}>
       <AppRoutes />
     </MemoryRouter>,
   )
-  expect(screen.getByText(content)).toBeInTheDocument()
+  expect(
+    content === 'Register Vehicle'
+      ? screen.getByRole('heading', { name: content })
+      : screen.getByText(content),
+  ).toBeInTheDocument()
 })

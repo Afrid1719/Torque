@@ -44,10 +44,10 @@ navigation and messaging, but backend authorization remains authoritative for
 every protected API operation.
 
 Authenticated pages use a shared application shell with the responsive TORQUE
-sidebar and header. The shell provides routes for Dashboard (`/`), Customers,
-Vehicles, Job Cards, Inventory, Billing, Reports, and Settings. Until those
-feature pages are implemented, each route intentionally renders only its page
-title.
+sidebar and header. The shell provides routes for Dashboard (`/`), Customers, Vehicles, Job Cards,
+Inventory, Billing, Reports, and Settings. The Vehicles route currently opens a
+static vehicle registration form; the remaining unimplemented feature routes
+intentionally render only their page title.
 
 Selecting Logout asks the backend to revoke the active refresh session, then
 clears the access token and user state from memory and redirects to `/login`.
