@@ -19,7 +19,7 @@ Variant = Annotated[str, StringConstraints(min_length=1, max_length=45)]
 
 VehicleType = Annotated[str, StringConstraints(min_length=5, max_length=25)]
 
-FuelType = Annotated[str, StringConstraints(min_length=3, max_length=10)]
+FuelType = Annotated[str, StringConstraints(min_length=2, max_length=6)]
 
 Transmission = Annotated[str, StringConstraints(min_length=4, max_length=15)]
 

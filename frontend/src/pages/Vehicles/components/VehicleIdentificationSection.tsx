@@ -1,6 +1,13 @@
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import QrCodeScannerOutlinedIcon from '@mui/icons-material/QrCodeScannerOutlined'
-import { Box, Button, InputAdornment, MenuItem, TextField } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  InputAdornment,
+  MenuItem,
+  TextField,
+} from '@mui/material'
 import { VehicleFormSection } from '@app/pages/Vehicles/components/VehicleFormSection'
 import { vehicleFieldSx } from '@app/pages/Vehicles/components/vehicleFormStyles'
 
@@ -31,6 +38,7 @@ export function VehicleIdentificationSection({
           fullWidth
           helperText="Official vehicle license plate mark"
           label="License Plate / Reg. No."
+          name="registration_number"
           required
           sx={vehicleFieldSx}
           slotProps={{
@@ -46,6 +54,7 @@ export function VehicleIdentificationSection({
           fullWidth
           helperText="✓ Valid ISO 3779 checksum"
           label="VIN / Chassis Number (17-Digit Standard)"
+          name="vin"
           required
           sx={{
             ...vehicleFieldSx,
@@ -80,24 +89,26 @@ export function VehicleIdentificationSection({
             },
           }}
         />
-        <TextField
+        <Autocomplete
           defaultValue="BMW"
-          fullWidth
-          label="Vehicle Make"
-          required
-          select
-          sx={vehicleFieldSx}
-        >
-          {['BMW', 'Audi', 'Mercedes-Benz', 'Toyota'].map((make) => (
-            <MenuItem key={make} value={make}>
-              {make}
-            </MenuItem>
-          ))}
-        </TextField>
+          freeSolo
+          options={['BMW', 'Audi', 'Mercedes-Benz', 'Toyota']}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              fullWidth
+              label="Vehicle Make"
+              name="make"
+              required
+              sx={vehicleFieldSx}
+            />
+          )}
+        />
         <TextField
           defaultValue="330i"
           fullWidth
           label="Vehicle Model"
+          name="model"
           required
           sx={vehicleFieldSx}
         />
@@ -105,6 +116,7 @@ export function VehicleIdentificationSection({
           defaultValue="M Sport LCI"
           fullWidth
           label="Variant"
+          name="variant"
           required
           sx={vehicleFieldSx}
         />
@@ -112,6 +124,7 @@ export function VehicleIdentificationSection({
           defaultValue="private"
           fullWidth
           label="Vehicle Type"
+          name="vehicle_type"
           required
           select
           sx={vehicleFieldSx}
@@ -123,6 +136,7 @@ export function VehicleIdentificationSection({
           defaultValue="Portimao Blue Metallic"
           fullWidth
           label="Exterior Color"
+          name="color"
           sx={vehicleFieldSx}
           slotProps={{
             input: {
@@ -146,6 +160,7 @@ export function VehicleIdentificationSection({
           defaultValue={2022}
           fullWidth
           label="Manufacture Year"
+          name="manufacture_year"
           sx={vehicleFieldSx}
           type="number"
           slotProps={{

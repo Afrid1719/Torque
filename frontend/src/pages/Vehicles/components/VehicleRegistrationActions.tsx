@@ -4,9 +4,11 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import { Box, Button, Stack, Typography } from '@mui/material'
 
 export function VehicleRegistrationActions({
+  isSubmitting,
   onCancel,
   onNotice,
 }: {
+  isSubmitting: boolean
   onCancel: () => void
   onNotice: (message: string) => void
 }) {
@@ -37,6 +39,7 @@ export function VehicleRegistrationActions({
         }}
       >
         <Button
+          disabled={isSubmitting}
           onClick={onCancel}
           size="small"
           startIcon={<CloseOutlinedIcon />}
@@ -53,6 +56,7 @@ export function VehicleRegistrationActions({
         sx={{ gap: 1, width: { xs: '100%', sm: 'auto' } }}
       >
         <Button
+          disabled={isSubmitting}
           onClick={() => onNotice('Draft saved locally.')}
           size="small"
           variant="outlined"
@@ -60,14 +64,18 @@ export function VehicleRegistrationActions({
           Save as Draft
         </Button>
         <Button
-          onClick={() => onNotice('Vehicle details are ready to register.')}
+          disabled={isSubmitting}
+          form="register-vehicle-form"
           size="small"
           startIcon={<SaveOutlinedIcon />}
+          type="submit"
           variant="contained"
         >
           Save &amp; Register
         </Button>
         <Button
+          disabled={isSubmitting}
+          form="register-vehicle-form"
           startIcon={<AssignmentTurnedInOutlinedIcon />}
           size="small"
           type="submit"

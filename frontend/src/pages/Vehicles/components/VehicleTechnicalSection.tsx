@@ -16,13 +16,14 @@ import {
 } from '@mui/material'
 import { VehicleFormSection } from '@app/pages/Vehicles/components/VehicleFormSection'
 import { vehicleFieldSx } from '@app/pages/Vehicles/components/vehicleFormStyles'
+import type { CreateVehicleRequest } from '@app/api/vehicles'
 
 export function VehicleTechnicalSection({
   fuelType,
   onFuelTypeChange,
 }: {
-  fuelType: string
-  onFuelTypeChange: (fuelType: string) => void
+  fuelType: CreateVehicleRequest['fuel_type']
+  onFuelTypeChange: (fuelType: CreateVehicleRequest['fuel_type']) => void
 }) {
   return (
     <VehicleFormSection
@@ -47,7 +48,15 @@ export function VehicleTechnicalSection({
             exclusive
             fullWidth
             onChange={(_, value: string | null) => {
-              if (value) onFuelTypeChange(value)
+              if (
+                value === 'petrol' ||
+                value === 'diesel' ||
+                value === 'ev' ||
+                value === 'cng' ||
+                value === 'hybrid'
+              ) {
+                onFuelTypeChange(value)
+              }
             }}
             size="small"
             value={fuelType}
@@ -104,6 +113,7 @@ export function VehicleTechnicalSection({
           defaultValue="automatic"
           fullWidth
           label="Transmission Type"
+          name="transmission"
           select
           sx={vehicleFieldSx}
         >
@@ -116,6 +126,7 @@ export function VehicleTechnicalSection({
           fullWidth
           helperText="Recorded on check-in intake"
           label="Current Odometer"
+          name="odometer"
           required
           sx={vehicleFieldSx}
           slotProps={{
@@ -129,6 +140,7 @@ export function VehicleTechnicalSection({
           fullWidth
           helperText="Enter engine displacement in cubic centimeters."
           label="Engine Capacity (cc)"
+          name="engine_capacity"
           sx={vehicleFieldSx}
           type="number"
           slotProps={{ htmlInput: { min: 998, step: 1 } }}
@@ -144,12 +156,14 @@ export function VehicleTechnicalSection({
             defaultValue="ALLIANZ-882910"
             fullWidth
             label="Insurance Policy"
+            name="insurance_policy"
             sx={vehicleFieldSx}
           />
           <TextField
             defaultValue="2026-03-31"
             fullWidth
             label="Expiry"
+            name="insurance_expiry"
             sx={vehicleFieldSx}
             type="date"
           />

@@ -5,10 +5,12 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import type { CustomerProfileState } from '@app/utils/customers/customerProfileModel'
 
 export function VehicleRegistrationHeader({
+  isSubmitting,
   onNotice,
 }: {
   customer: CustomerProfileState
   customerId?: string
+  isSubmitting: boolean
   onNotice: (message: string) => void
 }) {
   return (
@@ -42,6 +44,7 @@ export function VehicleRegistrationHeader({
         }}
       >
         <Button
+          disabled={isSubmitting}
           onClick={() => onNotice('Draft saved locally.')}
           size="small"
           sx={{ px: 2 }}
@@ -50,19 +53,21 @@ export function VehicleRegistrationHeader({
           Save as Draft
         </Button>
         <Button
-          onClick={() => onNotice('Vehicle details are ready to register.')}
+          disabled={isSubmitting}
+          form="register-vehicle-form"
           size="small"
           startIcon={<SaveOutlinedIcon />}
+          type="submit"
           variant="contained"
         >
           Save &amp; Register
         </Button>
         <Button
-          onClick={() =>
-            onNotice('Vehicle is ready for registration and job card setup.')
-          }
+          disabled={isSubmitting}
+          form="register-vehicle-form"
           size="small"
           startIcon={<AssignmentTurnedInOutlinedIcon />}
+          type="submit"
           variant="contained"
         >
           Register &amp; Open Job Card

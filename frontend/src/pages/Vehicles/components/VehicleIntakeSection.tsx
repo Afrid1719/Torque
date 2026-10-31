@@ -47,6 +47,7 @@ export function VehicleIntakeSection() {
             label="Reported Symptoms & Cosmetic Inspection Notes"
             multiline
             minRows={3}
+            name="intake_notes"
             sx={vehicleFieldSx}
           />
           <Typography
@@ -66,8 +67,10 @@ export function VehicleIntakeSection() {
                 control={
                   <Checkbox
                     defaultChecked={index !== 2}
+                    name="handover_checklist"
                     size="small"
                     sx={{ p: 0.5 }}
+                    value={item}
                   />
                 }
                 key={item}
@@ -189,6 +192,12 @@ export function VehicleIntakeSection() {
                   },
                   '& .MuiSlider-markActive': { opacity: 1 },
                 }}
+              />
+              <input
+                name="fuel_tank_level"
+                readOnly
+                type="hidden"
+                value={fuelTankLevel}
               />
               <Stack
                 direction="row"

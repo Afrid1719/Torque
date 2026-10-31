@@ -68,6 +68,25 @@ def test_vehicle_create_normalizes_text_fields() -> None:
 
 
 @pytest.mark.parametrize(
+    ("fuel_type", "expected"),
+    [
+        ("ev", "EV"),
+        ("hybrid", "HYBRID"),
+    ],
+)
+def test_vehicle_create_accepts_fuel_types_at_updated_length_boundaries(
+    fuel_type: str,
+    expected: str,
+) -> None:
+    data = valid_vehicle_data()
+    data["fuel_type"] = fuel_type
+
+    vehicle = VehicleCreate.model_validate(data)
+
+    assert vehicle.fuel_type == expected
+
+
+@pytest.mark.parametrize(
     ("field", "value"),
     [
         ("registration_number", "INVALID"),
@@ -75,6 +94,8 @@ def test_vehicle_create_normalizes_text_fields() -> None:
         ("make", "M"),
         ("model", "AB"),
         ("variant", ""),
+        ("fuel_type", "e"),
+        ("fuel_type", "electric"),
         ("vehicle_type", "motorcycle"),
         ("odometer", 0),
         ("vin", "1HGCM82633A00435I"),
