@@ -16,6 +16,10 @@ import {
 } from 'react-router'
 import { ApiError } from '@app/api/client'
 import { customerQueryKey, getCustomer } from '@app/api/customers'
+import {
+  customerVehiclesQueryKey,
+  getCustomerVehicles,
+} from '@app/api/vehicles'
 import { useAuth } from '@app/hooks/useAuth'
 import { CustomerActivity } from '@app/pages/Customers/components/CustomerActivity'
 import { CustomerProfileOverview } from '@app/pages/Customers/components/CustomerProfileOverview'
@@ -42,6 +46,11 @@ export function CustomerProfilePage() {
     enabled: Boolean(accessToken && customerId),
     queryFn: () => getCustomer(accessToken!, customerId!),
     queryKey: customerQueryKey(customerId ?? ''),
+  })
+  const vehiclesQuery = useQuery({
+    enabled: Boolean(accessToken && customerId),
+    queryFn: () => getCustomerVehicles(accessToken!, customerId!),
+    queryKey: customerVehiclesQueryKey(customerId ?? ''),
   })
   const customer = customerQuery.data
     ? toProfileState(customerQuery.data)
@@ -110,8 +119,9 @@ export function CustomerProfilePage() {
           customer={customer}
           editPath={`/customers/${customer.id ?? customerId}/edit`}
         />
-        <CustomerStats />
+        <CustomerStats vehiclesCount={vehiclesQuery.data?.length ?? 0} />
         <CustomerActivity
+          customerId={customer.id ?? customerId}
           notes={customer.notes ?? ''}
           onAddVehicle={() =>
             navigate(`/customers/${customer.id ?? customerId}/vehicles/new`, {
@@ -119,6 +129,15 @@ export function CustomerProfilePage() {
             })
           }
           onEditNotes={() => navigate(`/customers/${customer.id}/edit`)}
+          vehicles={vehiclesQuery.data ?? []}
+          vehiclesError={
+            vehiclesQuery.error
+              ? vehiclesQuery.error instanceof ApiError
+                ? vehiclesQuery.error.message
+                : 'Unable to load registered vehicles.'
+              : null
+          }
+          vehiclesLoading={vehiclesQuery.isPending}
         />
       </Stack>
     </Box>

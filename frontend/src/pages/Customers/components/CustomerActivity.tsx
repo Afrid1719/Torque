@@ -1,5 +1,3 @@
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlineOutlined'
-import DirectionsCarOutlinedIcon from '@mui/icons-material/DirectionsCarOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import EventRepeatOutlinedIcon from '@mui/icons-material/EventRepeatOutlined'
 import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined'
@@ -14,15 +12,25 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
+import type { Vehicle } from '@app/api/vehicles'
+import { RegisteredVehicles } from '@app/pages/Customers/components/RegisteredVehicles'
 
 export function CustomerActivity({
+  customerId,
   notes,
   onAddVehicle,
   onEditNotes,
+  vehicles = [],
+  vehiclesError,
+  vehiclesLoading,
 }: {
+  customerId?: number | string
   notes: string
   onAddVehicle?: () => void
   onEditNotes?: () => void
+  vehicles?: Vehicle[]
+  vehiclesError?: string | null
+  vehiclesLoading?: boolean
 }) {
   return (
     <Box
@@ -34,31 +42,13 @@ export function CustomerActivity({
       }}
     >
       <Stack spacing={3}>
-        <Card variant="outlined">
-          <CardHeader
-            action={
-              <Button
-                onClick={onAddVehicle}
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-              >
-                Add New
-              </Button>
-            }
-            slotProps={{ title: { variant: 'overline' } }}
-            title="Registered Vehicles"
-          />
-          <Divider />
-          <CardContent sx={{ py: 5, textAlign: 'center' }}>
-            <DirectionsCarOutlinedIcon color="disabled" sx={{ fontSize: 48 }} />
-            <Typography sx={{ mt: 1 }} variant="h6">
-              No vehicles registered
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
-              Add the customer’s first vehicle to begin creating job cards.
-            </Typography>
-          </CardContent>
-        </Card>
+        <RegisteredVehicles
+          customerId={customerId}
+          error={vehiclesError}
+          isLoading={vehiclesLoading}
+          onAddVehicle={onAddVehicle}
+          vehicles={vehicles}
+        />
         <Card variant="outlined">
           <CardHeader
             avatar={<NotesOutlinedIcon color="primary" />}

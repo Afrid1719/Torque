@@ -7,3 +7,10 @@ it('renders customer activity statistics', () => {
   expect(screen.getByText('Total Spend')).toBeInTheDocument()
   expect(screen.getByText('No vehicles registered')).toBeInTheDocument()
 })
+
+it('shows the registered vehicle count', () => {
+  render(<CustomerStats vehiclesCount={2} />)
+
+  expect(screen.getByText('2')).toBeInTheDocument()
+  expect(screen.getByText('2 vehicles registered')).toBeInTheDocument()
+})

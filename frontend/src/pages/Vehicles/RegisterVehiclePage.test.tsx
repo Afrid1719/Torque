@@ -62,7 +62,7 @@ function renderPage({
                   state: { customer: customerState },
                 },
               ]
-            : ['/vehicles']
+            : ['/vehicles/new']
         }
       >
         <Routes>
@@ -70,7 +70,7 @@ function renderPage({
             element={<RegisterVehiclePage />}
             path="/customers/:customerId/vehicles/new"
           />
-          <Route element={<RegisterVehiclePage />} path="/vehicles" />
+          <Route element={<RegisterVehiclePage />} path="/vehicles/new" />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,

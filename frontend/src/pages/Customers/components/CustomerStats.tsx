@@ -11,14 +11,21 @@ import {
   Typography,
 } from '@mui/material'
 
-const stats = [
-  ['Total Visits', '0', 'No visits recorded', EventRepeatOutlinedIcon],
-  ['Total Spend', '₹0.00', 'No invoices recorded', PaymentsOutlinedIcon],
-  ['Last Visit', '—', 'No service history', CalendarTodayOutlinedIcon],
-  ['Vehicles', '0', 'No vehicles registered', DirectionsCarOutlinedIcon],
-] as const
+export function CustomerStats({ vehiclesCount = 0 }: { vehiclesCount?: number }) {
+  const stats = [
+    ['Total Visits', '0', 'No visits recorded', EventRepeatOutlinedIcon],
+    ['Total Spend', '₹0.00', 'No invoices recorded', PaymentsOutlinedIcon],
+    ['Last Visit', '—', 'No service history', CalendarTodayOutlinedIcon],
+    [
+      'Vehicles',
+      String(vehiclesCount),
+      vehiclesCount === 0
+        ? 'No vehicles registered'
+        : `${vehiclesCount} vehicle${vehiclesCount === 1 ? '' : 's'} registered`,
+      DirectionsCarOutlinedIcon,
+    ],
+  ] as const
 
-export function CustomerStats() {
   return (
     <Box
       component="section"

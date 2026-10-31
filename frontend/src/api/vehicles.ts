@@ -1,4 +1,4 @@
-import { postJson } from '@app/api/client'
+import { getJson, postJson } from '@app/api/client'
 import { API_V1_PREFIX } from '@app/api/constants'
 
 export type CreateVehicleRequest = {
@@ -19,6 +19,35 @@ export type CreateVehicleRequest = {
 
 export type Vehicle = CreateVehicleRequest & {
   id: number
+}
+
+export const customerVehiclesQueryKey = (customerId: string | number) =>
+  ['customer', String(customerId), 'vehicles'] as const
+
+export const vehiclesQueryKey = ['vehicles'] as const
+
+export function getVehicles(
+  accessToken: string,
+  search = '',
+): Promise<Vehicle[]> {
+  const normalizedSearch = search.trim()
+  const query = normalizedSearch
+    ? `?${new URLSearchParams({ query: normalizedSearch }).toString()}`
+    : ''
+
+  return getJson<Vehicle[]>(`${API_V1_PREFIX}/vehicles${query}`, {
+    accessToken,
+  })
+}
+
+export function getCustomerVehicles(
+  accessToken: string,
+  customerId: string | number,
+): Promise<Vehicle[]> {
+  return getJson<Vehicle[]>(
+    `${API_V1_PREFIX}/customers/${encodeURIComponent(String(customerId))}/vehicles`,
+    { accessToken },
+  )
 }
 
 export function createCustomerVehicle(
