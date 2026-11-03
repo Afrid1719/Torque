@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
@@ -13,7 +13,11 @@ from app.core.tokens import create_access_token
 from app.db.models import Customer, Role, User
 from app.db.session import get_db_session
 from app.main import app
-from app.schemas.vehicles import VehicleCreateResponse
+from app.schemas.vehicles import (
+    VehicleCreateResponse,
+    VehicleCustomerResponse,
+    VehicleListResponse,
+)
 from app.services.customers import DuplicateMobileNumberError
 
 TEST_SETTINGS = Settings(
@@ -28,7 +32,7 @@ async def override_db_session() -> AsyncGenerator[object, None]:
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_db_session] = override_db_session
     app.dependency_overrides[get_settings] = lambda: TEST_SETTINGS
     with TestClient(app) as test_client:
@@ -94,6 +98,17 @@ def build_vehicle_response() -> VehicleCreateResponse:
     )
 
 
+def build_vehicle_list_response() -> VehicleListResponse:
+    return VehicleListResponse(
+        **build_vehicle_response().model_dump(),
+        customer=VehicleCustomerResponse(
+            id=23,
+            name="Asha Rao",
+            mobile_number="+919876543210",
+        ),
+    )
+
+
 def vehicle_payload() -> dict[str, object]:
     return {
         "registration_number": "MH12AB1234",
@@ -153,6 +168,7 @@ def test_authorized_staff_can_create_customer(
     assert response.status_code == 201
     assert response.json()["id"] == 23
     assert response.json()["mobile_number"] == "+919876543210"
+    assert create.await_args is not None
     payload = create.await_args.args[1]
     assert payload.mobile_number == "+919876543210"
     assert payload.email == "asha@example.com"
@@ -244,7 +260,9 @@ def test_authorized_staff_can_list_customers(
         "Asha Rao",
         "Bilal Khan",
     ]
-    assert list_records.await_args.args[1] is None
+    await_args = list_records.await_args
+    assert await_args is not None
+    assert await_args.args[1] is None
 
 
 @pytest.mark.parametrize("search", ["asha", "98765"])
@@ -264,6 +282,7 @@ def test_customer_list_passes_search_to_repository(
     )
 
     assert response.status_code == 200
+    assert list_records.await_args is not None
     assert list_records.await_args.args[1] == search
 
 
@@ -315,6 +334,7 @@ def test_authorized_staff_can_get_created_customer(
 
     assert response.status_code == 200
     assert response.json()["name"] == "Asha Rao"
+    assert lookup.await_args is not None
     assert lookup.await_args.args[1] == 23
 
 
@@ -370,6 +390,7 @@ def test_authorized_staff_can_update_customer(
 
     assert response.status_code == 200
     assert response.json()["name"] == "Asha Sharma"
+    assert update.await_args is not None
     payload = update.await_args.args[2]
     assert payload.mobile_number == "+919876543210"
     assert payload.email == "asha@example.com"
@@ -593,7 +614,7 @@ def test_all_authenticated_roles_can_list_customer_vehicles(
 ) -> None:
     authenticate_as(monkeypatch, role_name)
     customer_lookup = AsyncMock(return_value=build_customer())
-    list_vehicles = AsyncMock(return_value=[build_vehicle_response()])
+    list_vehicles = AsyncMock(return_value=[build_vehicle_list_response()])
     monkeypatch.setattr(customer_api, "get_customer_by_id", customer_lookup)
     monkeypatch.setattr(customer_api, "get_vehicles_by_customer_id", list_vehicles)
 
@@ -604,6 +625,11 @@ def test_all_authenticated_roles_can_list_customer_vehicles(
 
     assert response.status_code == 200
     assert [vehicle["id"] for vehicle in response.json()] == [42]
+    assert response.json()[0]["customer"] == {
+        "id": 23,
+        "name": "Asha Rao",
+        "mobile_number": "+919876543210",
+    }
     customer_lookup.assert_awaited_once()
     list_vehicles.assert_awaited_once()
     assert list_vehicles.await_args is not None

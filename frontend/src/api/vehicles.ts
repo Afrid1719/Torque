@@ -18,7 +18,14 @@ export type CreateVehicleRequest = {
 }
 
 export type Vehicle = CreateVehicleRequest & {
+  customer?: VehicleCustomer | null
   id: number
+}
+
+export type VehicleCustomer = {
+  id: number
+  mobile_number: string
+  name: string
 }
 
 export function createCustomerVehicle(

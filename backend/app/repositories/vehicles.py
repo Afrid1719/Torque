@@ -1,11 +1,17 @@
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.db.models.vehicles import Vehicle
 
 
 async def get_vehicle_by_id(session: AsyncSession, vehicle_id: int) -> Vehicle | None:
-    result = await session.execute(select(Vehicle).where(Vehicle.id == vehicle_id))
+    statement = (
+        select(Vehicle)
+        .options(joinedload(Vehicle.customer))
+        .where(Vehicle.id == vehicle_id)
+    )
+    result = await session.execute(statement)
     return result.scalar_one_or_none()
 
 
@@ -14,6 +20,7 @@ async def get_vehicles_by_customer_id(
 ) -> list[Vehicle]:
     statement = (
         select(Vehicle)
+        .options(joinedload(Vehicle.customer))
         .order_by(Vehicle.make.asc(), Vehicle.model.asc(), Vehicle.variant.asc())
         .where(Vehicle.cust_id == customer_id)
     )
@@ -25,8 +32,10 @@ async def get_vehicles_by_customer_id(
 async def list_vehicles(
     session: AsyncSession, search: str | None = None
 ) -> list[Vehicle]:
-    statement = select(Vehicle).order_by(
-        Vehicle.make.asc(), Vehicle.model.asc(), Vehicle.variant.asc()
+    statement = (
+        select(Vehicle)
+        .options(joinedload(Vehicle.customer))
+        .order_by(Vehicle.make.asc(), Vehicle.model.asc(), Vehicle.variant.asc())
     )
 
     if search:

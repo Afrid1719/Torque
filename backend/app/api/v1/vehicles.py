@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies.authorization import CustomerStaffUser
 from app.db.session import get_db_session
 from app.repositories.vehicles import get_vehicle_by_id, list_vehicles
-from app.schemas.vehicles import VehicleCreate, VehicleCreateResponse
+from app.schemas.vehicles import (
+    VehicleCreate,
+    VehicleCreateResponse,
+    VehicleListResponse,
+)
 from app.services.vehicles import create_vehicle, update_vehicle
 
 router = APIRouter(prefix="/vehicles", tags=["vehicles"])
@@ -36,7 +40,7 @@ async def add_vehicle(
 
 @router.get(
     "",
-    response_model=list[VehicleCreateResponse],
+    response_model=list[VehicleListResponse],
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
@@ -47,16 +51,16 @@ async def get_vehicles(
     _current_user: CustomerStaffUser,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     query: str | None = None,
-) -> list[VehicleCreateResponse]:
+) -> list[VehicleListResponse]:
     return [
-        VehicleCreateResponse.model_validate(vehicle)
+        VehicleListResponse.model_validate(vehicle)
         for vehicle in await list_vehicles(session, query)
     ]
 
 
 @router.get(
     "/{vehicle_id}",
-    response_model=VehicleCreateResponse,
+    response_model=VehicleListResponse,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_401_UNAUTHORIZED: {"description": "Unauthorized"},
@@ -68,14 +72,14 @@ async def fetch_vehicle_by_id(
     vehicle_id: int,
     _current_user: CustomerStaffUser,
     session: Annotated[AsyncSession, Depends(get_db_session)],
-) -> VehicleCreateResponse:
+) -> VehicleListResponse:
     vehicle = await get_vehicle_by_id(session, vehicle_id)
     if vehicle is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Vehicle not found.",
         )
-    return VehicleCreateResponse.model_validate(vehicle)
+    return VehicleListResponse.model_validate(vehicle)
 
 
 @router.put(
