@@ -1,7 +1,12 @@
-import { postJson } from '@app/api/client'
-import { createCustomerVehicle } from './vehicles'
+import { getJson, postJson } from '@app/api/client'
+import {
+  createCustomerVehicle,
+  getCustomerVehicles,
+  getVehicles,
+} from './vehicles'
 
 jest.mock('@app/api/client', () => ({
+  getJson: jest.fn(),
   postJson: jest.fn(),
 }))
 
@@ -20,6 +25,26 @@ const payload = {
   vehicle_type: 'private' as const,
   vin: '1HGCM82633A004352',
 }
+
+it('gets vehicles registered to a customer with authentication', async () => {
+  const vehicles = [{ ...payload, id: 91 }]
+  jest.mocked(getJson).mockResolvedValue(vehicles)
+
+  await expect(getCustomerVehicles('token', 44)).resolves.toEqual(vehicles)
+  expect(getJson).toHaveBeenCalledWith('/api/v1/customers/44/vehicles', {
+    accessToken: 'token',
+  })
+})
+
+it('gets the vehicle list and encodes a search query', async () => {
+  const vehicles = [{ ...payload, id: 91 }]
+  jest.mocked(getJson).mockResolvedValue(vehicles)
+
+  await expect(getVehicles('token', 'BMW M4')).resolves.toEqual(vehicles)
+  expect(getJson).toHaveBeenCalledWith('/api/v1/vehicles?query=BMW+M4', {
+    accessToken: 'token',
+  })
+})
 
 it('posts vehicle data to the customer endpoint with authentication', async () => {
   const vehicle = { ...payload, id: 91 }
