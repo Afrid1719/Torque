@@ -58,6 +58,7 @@ def test_get_vehicle_by_id_returns_matching_vehicle() -> None:
     statement = session.execute.await_args.args[0]
     compiled = statement.compile()
     assert "WHERE vehicles.id =" in str(compiled)
+    assert "LEFT OUTER JOIN customers" in str(compiled)
     assert vehicle.id in compiled.params.values()
 
 
@@ -81,6 +82,7 @@ def test_get_vehicles_by_customer_id_filters_and_orders_results() -> None:
     compiled = statement.compile()
     sql = str(compiled)
     assert "WHERE vehicles.cust_id =" in sql
+    assert "LEFT OUTER JOIN customers" in sql
     assert "ORDER BY vehicles.make ASC, vehicles.model ASC, vehicles.variant ASC" in sql
     assert 23 in compiled.params.values()
 
@@ -103,6 +105,7 @@ def test_list_vehicles_without_search_returns_all_rows_in_order() -> None:
     statement = session.execute.await_args.args[0]
     sql = str(statement.compile())
     assert "WHERE" not in sql
+    assert "LEFT OUTER JOIN customers" in sql
     assert "ORDER BY vehicles.make ASC, vehicles.model ASC, vehicles.variant ASC" in sql
 
 

@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enum import FuelTypeEnum, TransmissionEnum, VehicleTypeEnum
 from app.db.base import Base
 from app.db.models.auth import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.customers import Customer
 
 
 def _enum_check_constraint(
@@ -69,3 +75,5 @@ class Vehicle(TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     manufacture_year: Mapped[int | None] = mapped_column(Integer)
     engine_capacity: Mapped[int | None] = mapped_column(Integer)
+
+    customer: Mapped[Customer | None] = relationship(back_populates="vehicles")
