@@ -1,8 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.models.auth import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.vehicles import Vehicle
 
 
 class Customer(TimestampMixin, Base):
@@ -17,3 +24,5 @@ class Customer(TimestampMixin, Base):
     email: Mapped[str | None] = mapped_column(String(254))
     address: Mapped[str | None] = mapped_column(String(500))
     notes: Mapped[str | None] = mapped_column(String(2000))
+
+    vehicles: Mapped[list[Vehicle]] = relationship(back_populates="customer")

@@ -13,7 +13,11 @@ from app.core.tokens import create_access_token
 from app.db.models import Role, User
 from app.db.session import get_db_session
 from app.main import app
-from app.schemas.vehicles import VehicleCreateResponse
+from app.schemas.vehicles import (
+    VehicleCreateResponse,
+    VehicleCustomerResponse,
+    VehicleListResponse,
+)
 from app.services.vehicles import DuplicateRegistrationVinError
 
 TEST_SETTINGS = Settings(
@@ -79,6 +83,17 @@ def build_vehicle_response() -> VehicleCreateResponse:
         is_active=True,
         manufacture_year=2022,
         engine_capacity=1197,
+    )
+
+
+def build_vehicle_list_response() -> VehicleListResponse:
+    return VehicleListResponse(
+        **build_vehicle_response().model_dump(),
+        customer=VehicleCustomerResponse(
+            id=23,
+            name="Asha Rao",
+            mobile_number="+919876543210",
+        ),
     )
 
 
@@ -183,7 +198,7 @@ def test_authorized_staff_can_list_vehicles(
 ) -> None:
     authenticate_as(monkeypatch, role_name)
     list_vehicles = AsyncMock(
-        return_value=[build_vehicle_response(), build_vehicle_response()]
+        return_value=[build_vehicle_list_response(), build_vehicle_list_response()]
     )
     monkeypatch.setattr(vehicle_api, "list_vehicles", list_vehicles)
 
@@ -194,6 +209,11 @@ def test_authorized_staff_can_list_vehicles(
 
     assert response.status_code == 200
     assert [vehicle["id"] for vehicle in response.json()] == [42, 42]
+    assert response.json()[0]["customer"] == {
+        "id": 23,
+        "name": "Asha Rao",
+        "mobile_number": "+919876543210",
+    }
     list_vehicles.assert_awaited_once()
     assert list_vehicles.await_args is not None
     assert list_vehicles.await_args.args[1] is None
@@ -204,7 +224,7 @@ def test_vehicle_list_passes_search_query_to_repository(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     authenticate_as(monkeypatch, "service_advisor")
-    list_vehicles = AsyncMock(return_value=[build_vehicle_response()])
+    list_vehicles = AsyncMock(return_value=[build_vehicle_list_response()])
     monkeypatch.setattr(vehicle_api, "list_vehicles", list_vehicles)
 
     response = client.get(
@@ -253,7 +273,7 @@ def test_authorized_staff_can_fetch_vehicle_by_id(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     authenticate_as(monkeypatch, "service_advisor")
-    lookup = AsyncMock(return_value=build_vehicle_response())
+    lookup = AsyncMock(return_value=build_vehicle_list_response())
     monkeypatch.setattr(vehicle_api, "get_vehicle_by_id", lookup)
 
     response = client.get(
@@ -263,6 +283,11 @@ def test_authorized_staff_can_fetch_vehicle_by_id(
 
     assert response.status_code == 200
     assert response.json()["id"] == 42
+    assert response.json()["customer"] == {
+        "id": 23,
+        "name": "Asha Rao",
+        "mobile_number": "+919876543210",
+    }
     lookup.assert_awaited_once()
     assert lookup.await_args is not None
     assert lookup.await_args.args[1] == 42

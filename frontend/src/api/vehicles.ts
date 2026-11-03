@@ -18,6 +18,7 @@ export type CreateVehicleRequest = {
 }
 
 export type Vehicle = CreateVehicleRequest & {
+  customer?: VehicleCustomer | null
   id: number
 }
 
@@ -48,6 +49,12 @@ export function getCustomerVehicles(
     `${API_V1_PREFIX}/customers/${encodeURIComponent(String(customerId))}/vehicles`,
     { accessToken },
   )
+}
+
+export type VehicleCustomer = {
+  id: number
+  mobile_number: string
+  name: string
 }
 
 export function createCustomerVehicle(

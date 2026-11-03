@@ -4,7 +4,11 @@ from types import SimpleNamespace
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.vehicles import VehicleCreate, VehicleCreateResponse
+from app.schemas.vehicles import (
+    VehicleCreate,
+    VehicleCreateResponse,
+    VehicleListResponse,
+)
 
 
 def valid_vehicle_data() -> dict[str, object]:
@@ -176,3 +180,26 @@ def test_vehicle_create_response_reads_attributes() -> None:
 
     assert response.id == 1
     assert response.registration_number == "MH12AB1234"
+
+
+def test_vehicle_list_response_includes_customer_summary() -> None:
+    attributes = {
+        "id": 1,
+        **valid_vehicle_data(),
+        "is_active": True,
+        "customer": SimpleNamespace(
+            id=23,
+            name="Asha Rao",
+            mobile_number="+919876543210",
+            email="not-included@example.com",
+        ),
+    }
+
+    response = VehicleListResponse.model_validate(SimpleNamespace(**attributes))
+
+    assert response.customer is not None
+    assert response.customer.model_dump() == {
+        "id": 23,
+        "name": "Asha Rao",
+        "mobile_number": "+919876543210",
+    }

@@ -112,3 +112,15 @@ class VehicleCreateResponse(BaseModel):
     is_active: bool
     manufacture_year: int | None
     engine_capacity: int | None
+
+
+class VehicleCustomerResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    mobile_number: str
+
+
+class VehicleListResponse(VehicleCreateResponse):
+    customer: VehicleCustomerResponse | None = None
