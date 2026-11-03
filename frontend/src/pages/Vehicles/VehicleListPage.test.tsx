@@ -135,6 +135,21 @@ it('renders vehicle cards and opens vehicle details in grid view', async () => {
   expect(within(dialog).getByText('12,400 km')).toBeInTheDocument()
 })
 
+it('links the register vehicle tile to vehicle registration', async () => {
+  jest.mocked(useAuth).mockReturnValue({ accessToken: 'test-token' } as never)
+  jest.mocked(getVehicles).mockResolvedValue([customerVehicle])
+  renderVehicleList('/vehicles')
+
+  const registerLink = await screen.findByRole('link', {
+    name: 'Register a new vehicle',
+  })
+
+  expect(registerLink).toHaveAttribute('href', '/vehicles/new')
+  expect(
+    screen.getByText('Register a new vehicle in the vehicle registry.'),
+  ).toBeInTheDocument()
+})
+
 it('filters vehicles by the search field', async () => {
   jest.mocked(useAuth).mockReturnValue({ accessToken: 'test-token' } as never)
   jest.mocked(getVehicles).mockResolvedValue([
