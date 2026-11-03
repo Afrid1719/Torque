@@ -9,6 +9,7 @@ import {
   Chip,
   Divider,
   IconButton,
+  Link,
   Stack,
   Typography,
 } from '@mui/material'
@@ -254,26 +255,58 @@ export function VehicleCard({
                 width: 24,
               }}
             >
-              {status.ownerName
+              {vehicle.customer?.name
                 .split(' ')
                 .map((part) => part[0])
-                .join('')}
+                .join('') ?? '—'}
             </Avatar>
-            <Typography
-              noWrap
-              sx={{ fontSize: 10, fontWeight: 600, lineHeight: '16px' }}
-            >
-              {status.ownerName}
-            </Typography>
-            <IconButton
-              aria-label={`Open customers for ${status.ownerName}`}
-              component={RouterLink}
-              size="small"
-              sx={{ p: 0.25 }}
-              to="/customers"
-            >
-              <OpenInNewOutlinedIcon sx={{ fontSize: 14 }} />
-            </IconButton>
+            <Stack spacing={0.1} sx={{ minWidth: 0 }}>
+              {vehicle.customer ? (
+                <Link
+                  component={RouterLink}
+                  noWrap
+                  sx={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    lineHeight: '16px',
+                  }}
+                  to={`/customers/${vehicle.customer.id}`}
+                  underline="hover"
+                >
+                  {vehicle.customer.name}
+                </Link>
+              ) : (
+                <Typography
+                  color="text.secondary"
+                  noWrap
+                  sx={{ fontSize: 10, fontWeight: 600, lineHeight: '16px' }}
+                >
+                  No customer assigned
+                </Typography>
+              )}
+              {vehicle.customer?.mobile_number && (
+                <Typography
+                  color="text.secondary"
+                  noWrap
+                  sx={{ fontSize: 9, lineHeight: '12px' }}
+                >
+                  {vehicle.customer.mobile_number}
+                </Typography>
+              )}
+            </Stack>
+            {vehicle.customer ? (
+              <IconButton
+                aria-label={`Open customer profile for ${vehicle.customer.name}`}
+                component={RouterLink}
+                size="small"
+                sx={{ p: 0.25 }}
+                to={`/customers/${vehicle.customer.id}`}
+              >
+                <OpenInNewOutlinedIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 20 }} />
+            )}
           </Box>
           <Box
             sx={{

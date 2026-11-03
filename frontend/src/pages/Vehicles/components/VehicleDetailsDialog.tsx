@@ -26,6 +26,11 @@ export function VehicleDetailsDialog({
             <Stack spacing={1}>
               {[
                 ['Registration', vehicle.registration_number],
+                ['Customer', vehicle.customer?.name ?? 'Unassigned'],
+                [
+                  'Customer phone',
+                  vehicle.customer?.mobile_number ?? 'Unavailable',
+                ],
                 ['Variant', vehicle.variant],
                 ['Year', vehicle.manufacture_year ?? 'Unavailable'],
                 ['Odometer', `${vehicle.odometer.toLocaleString()} km`],

@@ -10,6 +10,15 @@ const vehicles: Vehicle[] = Array.from({ length: 7 }, (_, index) => ({
   id: index + 1,
   is_active: true,
   make: `Make ${index + 1}`,
+  ...(index === 0
+    ? {
+        customer: {
+          id: 44,
+          mobile_number: '+919876543210',
+          name: 'Asha Rao',
+        },
+      }
+    : {}),
   manufacture_year: 2022,
   model: 'Model',
   odometer: 12400,
@@ -29,6 +38,12 @@ it('renders vehicle details and paginates through rows', () => {
 
   const table = screen.getByRole('table', { name: 'Vehicles' })
   expect(within(table).getByText('TEST-1')).toBeInTheDocument()
+  expect(within(table).getByText('Asha Rao')).toHaveAttribute(
+    'href',
+    '/customers/44',
+  )
+  expect(within(table).getByText('+919876543210')).toBeInTheDocument()
+  expect(within(table).getAllByText('Unassigned')).toHaveLength(4)
   expect(within(table).getByText('TEST-5')).toBeInTheDocument()
   expect(within(table).queryByText('TEST-6')).not.toBeInTheDocument()
   expect(screen.getByText('1–5 of 7')).toBeInTheDocument()
@@ -50,4 +65,5 @@ it('shows vehicle specifications from the table details action', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Details' }))
 
   expect(screen.getByRole('dialog')).toHaveTextContent('VIN-1')
+  expect(screen.getByRole('dialog')).toHaveTextContent('Asha Rao')
 })

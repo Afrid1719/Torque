@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Chip,
+  Link,
   Stack,
   Table,
   TableBody,
@@ -49,7 +50,7 @@ export function VehicleListTable({ vehicles }: { vehicles: Vehicle[] }) {
           aria-label="Vehicles"
           size="small"
           sx={{
-            minWidth: 760,
+            minWidth: 900,
             '& .MuiTableCell-root': {
               borderColor: '#edf0f4',
               px: { xs: 1.5, sm: 2 },
@@ -77,6 +78,7 @@ export function VehicleListTable({ vehicles }: { vehicles: Vehicle[] }) {
               <TableCell>Vehicle</TableCell>
               <TableCell>Year</TableCell>
               <TableCell>Fuel</TableCell>
+              <TableCell>Customer</TableCell>
               <TableCell align="right">Odometer</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -164,6 +166,32 @@ export function VehicleListTable({ vehicles }: { vehicles: Vehicle[] }) {
                   <TableCell sx={{ color: '#475467' }}>
                     {fuelTypeLabels[vehicle.fuel_type.toLowerCase()] ??
                       vehicle.fuel_type}
+                  </TableCell>
+                  <TableCell>
+                    {vehicle.customer ? (
+                      <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                        <Link
+                          component={RouterLink}
+                          noWrap
+                          sx={{ fontSize: 12, fontWeight: 600 }}
+                          to={`/customers/${vehicle.customer.id}`}
+                          underline="hover"
+                        >
+                          {vehicle.customer.name}
+                        </Link>
+                        <Typography
+                          color="text.secondary"
+                          noWrap
+                          variant="caption"
+                        >
+                          {vehicle.customer.mobile_number}
+                        </Typography>
+                      </Stack>
+                    ) : (
+                      <Typography color="text.secondary" variant="caption">
+                        Unassigned
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                     <Typography

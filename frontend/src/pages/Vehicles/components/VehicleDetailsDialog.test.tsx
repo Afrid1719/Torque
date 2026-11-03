@@ -4,6 +4,11 @@ import { VehicleDetailsDialog } from '@app/pages/Vehicles/components/VehicleDeta
 
 const vehicle: Vehicle = {
   color: 'White',
+  customer: {
+    id: 44,
+    mobile_number: '+919876543210',
+    name: 'Asha Rao',
+  },
   engine_capacity: 1998,
   fuel_type: 'petrol',
   id: 91,
@@ -30,6 +35,8 @@ it('shows vehicle specifications when a vehicle is selected', () => {
 
   const dialog = screen.getByRole('dialog')
   expect(dialog).toHaveTextContent('BMW M4')
+  expect(dialog).toHaveTextContent('Asha Rao')
+  expect(dialog).toHaveTextContent('+919876543210')
   expect(dialog).toHaveTextContent('BIM-4202')
   expect(dialog).toHaveTextContent('12,400 km')
   expect(dialog).toHaveTextContent('Petrol')

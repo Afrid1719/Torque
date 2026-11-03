@@ -32,6 +32,11 @@ jest.mock('@app/hooks/useAuth', () => ({
 
 const customerVehicle: Vehicle = {
   color: 'White',
+  customer: {
+    id: 44,
+    mobile_number: '+919876543210',
+    name: 'Asha Rao',
+  },
   engine_capacity: 1998,
   fuel_type: 'petrol',
   id: 91,
@@ -73,6 +78,7 @@ it('loads only the selected customer’s vehicles', async () => {
   })
   expect(getVehicles).not.toHaveBeenCalled()
   expect(await screen.findByText('BIM-4202')).toBeInTheDocument()
+  expect(screen.getByText('Asha Rao')).toHaveAttribute('href', '/customers/44')
 })
 
 it('shows a paginated table in list view', async () => {
