@@ -41,10 +41,9 @@ it('gets the vehicle list and encodes a search query', async () => {
   jest.mocked(getJson).mockResolvedValue(vehicles)
 
   await expect(getVehicles('token', 'BMW M4')).resolves.toEqual(vehicles)
-  expect(getJson).toHaveBeenCalledWith(
-    '/api/v1/vehicles?query=BMW+M4',
-    { accessToken: 'token' },
-  )
+  expect(getJson).toHaveBeenCalledWith('/api/v1/vehicles?query=BMW+M4', {
+    accessToken: 'token',
+  })
 })
 
 it('posts vehicle data to the customer endpoint with authentication', async () => {

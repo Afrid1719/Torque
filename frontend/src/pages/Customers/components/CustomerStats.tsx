@@ -11,7 +11,11 @@ import {
   Typography,
 } from '@mui/material'
 
-export function CustomerStats({ vehiclesCount = 0 }: { vehiclesCount?: number }) {
+export function CustomerStats({
+  vehiclesCount = 0,
+}: {
+  vehiclesCount?: number
+}) {
   const stats = [
     ['Total Visits', '0', 'No visits recorded', EventRepeatOutlinedIcon],
     ['Total Spend', '₹0.00', 'No invoices recorded', PaymentsOutlinedIcon],
