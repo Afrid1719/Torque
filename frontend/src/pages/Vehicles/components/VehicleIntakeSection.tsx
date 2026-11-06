@@ -20,14 +20,18 @@ const handoverItems = [
   'Trunk Wheel Lock Nut Present',
 ]
 
-export function VehicleIntakeSection() {
+export function VehicleIntakeSection({
+  sectionNumber = 4,
+}: {
+  sectionNumber?: number
+}) {
   const [fuelTankLevel, setFuelTankLevel] = useState(75)
 
   return (
     <VehicleFormSection
       detail="Pre-service inspection"
       icon={<FactCheckOutlinedIcon fontSize="small" />}
-      title="4. Workshop Initial Intake & Inventory Handover"
+      title={`${sectionNumber}. Workshop Initial Intake & Inventory Handover`}
     >
       <Box
         sx={{

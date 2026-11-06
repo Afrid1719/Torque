@@ -21,15 +21,17 @@ import type { CreateVehicleRequest } from '@app/api/vehicles'
 export function VehicleTechnicalSection({
   fuelType,
   onFuelTypeChange,
+  sectionNumber = 3,
 }: {
   fuelType: CreateVehicleRequest['fuel_type']
   onFuelTypeChange: (fuelType: CreateVehicleRequest['fuel_type']) => void
+  sectionNumber?: number
 }) {
   return (
     <VehicleFormSection
       detail="Powertrain & diagnostic specs"
       icon={<TuneOutlinedIcon fontSize="small" />}
-      title="3. Technical & Operational Parameters"
+      title={`${sectionNumber}. Technical & Operational Parameters`}
     >
       <Box
         sx={{

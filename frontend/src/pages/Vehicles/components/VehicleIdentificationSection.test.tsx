@@ -38,3 +38,15 @@ it('exposes make suggestions in the combo select', () => {
     expect(screen.getByRole('option', { name: option })).toBeInTheDocument()
   }
 })
+
+it('uses the supplied section number', () => {
+  render(
+    <VehicleIdentificationSection onNotice={jest.fn()} sectionNumber={1} />,
+  )
+
+  expect(
+    screen.getByRole('heading', {
+      name: '1. Identification & Vehicle Specifications',
+    }),
+  ).toBeInTheDocument()
+})

@@ -31,3 +31,13 @@ it('renders intake notes, checklist state, and fuel level control', () => {
     '75',
   )
 })
+
+it('uses the supplied section number', () => {
+  render(<VehicleIntakeSection sectionNumber={3} />)
+
+  expect(
+    screen.getByRole('heading', {
+      name: '3. Workshop Initial Intake & Inventory Handover',
+    }),
+  ).toBeInTheDocument()
+})

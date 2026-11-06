@@ -41,3 +41,19 @@ it('renders technical defaults, units, transmission, and diagnostics', () => {
   expect(screen.getByText('OBD-II Baseline Profile')).toBeInTheDocument()
   expect(screen.getByText('ECU: BOSCH MG1CS024')).toBeInTheDocument()
 })
+
+it('uses the supplied section number', () => {
+  render(
+    <VehicleTechnicalSection
+      fuelType="petrol"
+      onFuelTypeChange={jest.fn()}
+      sectionNumber={2}
+    />,
+  )
+
+  expect(
+    screen.getByRole('heading', {
+      name: '2. Technical & Operational Parameters',
+    }),
+  ).toBeInTheDocument()
+})
