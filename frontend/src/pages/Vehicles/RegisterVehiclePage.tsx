@@ -49,6 +49,8 @@ export function RegisterVehiclePage() {
   const navigationCustomer = (
     location.state as { customer?: CustomerProfileState } | null
   )?.customer
+  const hasCustomerContext = Boolean(customerId || navigationCustomer)
+  const firstVehicleSectionNumber = hasCustomerContext ? 2 : 1
   const customer = navigationCustomer ?? sampleCustomer
   const requestCustomerId = customerId ?? navigationCustomer?.id?.toString()
   const [fuelType, setFuelType] =
@@ -207,15 +209,24 @@ export function RegisterVehiclePage() {
     >
       <Box sx={{ maxWidth: 1440, mx: 'auto' }}>
         <AppBreadcrumbs
-          aria-label="Customer navigation"
-          items={[
-            { label: 'Customers', to: '/customers' },
-            {
-              label: customer.name,
-              to: `/customers/${customer.id ?? customerId ?? ''}`,
-            },
-            { label: 'New Vehicle' },
-          ]}
+          aria-label={
+            hasCustomerContext ? 'Customer navigation' : 'Vehicle navigation'
+          }
+          items={
+            hasCustomerContext
+              ? [
+                  { label: 'Customers', to: '/customers' },
+                  {
+                    label: customer.name,
+                    to: `/customers/${customer.id ?? customerId ?? ''}`,
+                  },
+                  { label: 'New Vehicle' },
+                ]
+              : [
+                  { label: 'Vehicles', to: '/vehicles' },
+                  { label: 'New Vehicle' },
+                ]
+          }
           sx={{ mb: 3 }}
         />
         <VehicleRegistrationHeader
@@ -224,7 +235,9 @@ export function RegisterVehiclePage() {
           isSubmitting={mutation.isPending}
           onNotice={showNotice}
         />
-        <VehicleRegistryBanner customer={customer} customerId={customerId} />
+        {hasCustomerContext && (
+          <VehicleRegistryBanner customer={customer} customerId={customerId} />
+        )}
         <Box
           component="form"
           id="register-vehicle-form"
@@ -235,21 +248,31 @@ export function RegisterVehiclePage() {
           {requestError && !preview && (
             <Alert severity="error">{requestError}</Alert>
           )}
-          <VehicleOwnershipSection
-            customer={customer}
-            customerId={customerId}
+          {hasCustomerContext && (
+            <VehicleOwnershipSection
+              customer={customer}
+              customerId={customerId}
+              onNotice={showNotice}
+            />
+          )}
+          <VehicleIdentificationSection
             onNotice={showNotice}
+            sectionNumber={firstVehicleSectionNumber}
           />
-          <VehicleIdentificationSection onNotice={showNotice} />
           <VehicleTechnicalSection
             fuelType={fuelType}
             onFuelTypeChange={setFuelType}
+            sectionNumber={firstVehicleSectionNumber + 1}
           />
-          <VehicleIntakeSection />
+          <VehicleIntakeSection sectionNumber={firstVehicleSectionNumber + 2} />
           <VehicleRegistrationActions
             isSubmitting={mutation.isPending}
             onCancel={() =>
-              navigate(`/customers/${customer.id ?? customerId ?? ''}`)
+              navigate(
+                hasCustomerContext
+                  ? `/customers/${customer.id ?? customerId ?? ''}`
+                  : '/vehicles',
+              )
             }
             onNotice={showNotice}
           />

@@ -13,14 +13,16 @@ import { vehicleFieldSx } from '@app/pages/Vehicles/components/vehicleFormStyles
 
 export function VehicleIdentificationSection({
   onNotice,
+  sectionNumber = 2,
 }: {
   onNotice: (message: string) => void
+  sectionNumber?: number
 }) {
   return (
     <VehicleFormSection
       detail="VIN decoder active"
       icon={<BadgeOutlinedIcon fontSize="small" />}
-      title="2. Identification & Vehicle Specifications"
+      title={`${sectionNumber}. Identification & Vehicle Specifications`}
     >
       <Box
         sx={{

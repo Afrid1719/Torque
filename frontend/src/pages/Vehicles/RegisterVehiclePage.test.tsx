@@ -86,33 +86,77 @@ describe('RegisterVehiclePage', () => {
     jest.mocked(createCustomerVehicle).mockResolvedValue(createdVehicle)
   })
 
-  it('renders registration sections and static customer details', () => {
+  it('omits customer linkage and numbers visible sections from one without customer context', () => {
     renderPage({ customerState: null })
 
     expect(
       screen.getByRole('heading', { name: 'Register Vehicle' }),
     ).toBeInTheDocument()
     expect(screen.getByText('New Vehicle')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Vehicles' })).toHaveAttribute(
+      'href',
+      '/vehicles',
+    )
+    expect(
+      screen.queryByRole('link', { name: 'Robert Harrison' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Customer linked')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', {
+        name: '1. Customer Ownership & Assignment',
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: '1. Identification & Vehicle Specifications',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: '2. Technical & Operational Parameters',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: '3. Workshop Initial Intake & Inventory Handover',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByDisplayValue('WBA3N5C51FK289410')).toBeInTheDocument()
+  })
+
+  it('shows customer linkage and section numbers when opened from a customer profile', () => {
+    renderPage()
+
+    expect(screen.getAllByText('Sam Driver')).toHaveLength(2)
     expect(screen.getByRole('link', { name: 'Customers' })).toHaveAttribute(
       'href',
       '/customers',
     )
+    expect(screen.getByRole('link', { name: 'Sam Driver' })).toHaveAttribute(
+      'href',
+      '/customers/44',
+    )
+    expect(screen.getByText('Customer linked')).toBeInTheDocument()
     expect(
-      screen.getByRole('link', { name: 'Robert Harrison' }),
-    ).toHaveAttribute('href', '/customers/9842')
+      screen.getByRole('heading', {
+        name: '1. Customer Ownership & Assignment',
+      }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: '2. Identification & Vehicle Specifications',
       }),
     ).toBeInTheDocument()
-    expect(screen.getAllByText('Robert Harrison')).toHaveLength(2)
-    expect(screen.getByDisplayValue('WBA3N5C51FK289410')).toBeInTheDocument()
-  })
-
-  it('uses customer details supplied by the profile route', () => {
-    renderPage()
-
-    expect(screen.getAllByText('Sam Driver')).toHaveLength(2)
+    expect(
+      screen.getByRole('heading', {
+        name: '3. Technical & Operational Parameters',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: '4. Workshop Initial Intake & Inventory Handover',
+      }),
+    ).toBeInTheDocument()
     expect(screen.getByText('#CUST-44')).toBeInTheDocument()
     expect(screen.getByText(/☎ \+1 555 0100/)).toBeInTheDocument()
   })
