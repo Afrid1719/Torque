@@ -105,6 +105,7 @@ def build_vehicle_list_response() -> VehicleListResponse:
             id=23,
             name="Asha Rao",
             mobile_number="+919876543210",
+            email="asha@example.com",
         ),
     )
 
@@ -629,6 +630,7 @@ def test_all_authenticated_roles_can_list_customer_vehicles(
         "id": 23,
         "name": "Asha Rao",
         "mobile_number": "+919876543210",
+        "email": "asha@example.com",
     }
     customer_lookup.assert_awaited_once()
     list_vehicles.assert_awaited_once()

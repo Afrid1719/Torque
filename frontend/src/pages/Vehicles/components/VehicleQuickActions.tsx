@@ -50,11 +50,7 @@ export function VehicleQuickActions() {
           return (
             <Tooltip
               key={action}
-              title={
-                destination
-                  ? ''
-                  : 'This action is not available yet.'
-              }
+              title={destination ? '' : 'This action is not available yet.'}
             >
               <span>{button}</span>
             </Tooltip>
