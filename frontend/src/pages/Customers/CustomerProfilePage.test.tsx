@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ApiError } from '@app/api/client'
 import { useAuth } from '../../hooks/useAuth'
@@ -15,6 +15,15 @@ const customer = {
   mobile_number: '123',
   name: 'John',
   notes: null,
+}
+
+function VehicleStateRoute() {
+  const location = useLocation()
+  const navigationCustomer = (
+    location.state as { customer?: { id?: number; name?: string } } | null
+  )?.customer
+
+  return <div>{navigationCustomer?.name ?? 'Missing customer context'}</div>
 }
 
 function renderProfile(initialEntry: string | object = '/customers/44') {
@@ -33,6 +42,7 @@ function renderProfile(initialEntry: string | object = '/customers/44') {
           path="/customers/:customerId/edit"
           element={<h1>Edit customer profile</h1>}
         />
+        <Route path="/vehicles/:vehicleId" element={<VehicleStateRoute />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -95,6 +105,42 @@ it('navigates to add a vehicle for the current customer', () => {
   expect(
     screen.getByRole('heading', { name: 'Register customer vehicle' }),
   ).toBeInTheDocument()
+})
+
+it('passes the fetched customer name when opening a registered vehicle', () => {
+  jest.mocked(useAuth).mockReturnValue({ accessToken: 'token' } as never)
+  jest.mocked(useQuery).mockReturnValueOnce({
+    data: customer,
+    error: null,
+    isPending: false,
+  } as never)
+  jest.mocked(useQuery).mockReturnValueOnce({
+    data: [
+      {
+        color: 'White',
+        engine_capacity: 1998,
+        fuel_type: 'petrol',
+        id: 91,
+        is_active: true,
+        make: 'BMW',
+        manufacture_year: 2022,
+        model: 'M4',
+        odometer: 12400,
+        registration_number: 'BIM-4202',
+        transmission: 'automatic',
+        variant: 'Competition',
+        vehicle_type: 'private',
+        vin: '1HGCM82633A004352',
+      },
+    ],
+    error: null,
+    isPending: false,
+  } as never)
+
+  renderProfile()
+  fireEvent.click(screen.getByRole('link', { name: /BMW M4 Competition/ }))
+
+  expect(screen.getByText('John')).toBeInTheDocument()
 })
 
 it('navigates to edit notes from the customer profile', () => {

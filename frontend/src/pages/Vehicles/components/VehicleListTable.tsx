@@ -122,8 +122,15 @@ export function VehicleListTable({ vehicles }: { vehicles: Vehicle[] }) {
                       </Avatar>
                       <Stack spacing={0.35} sx={{ minWidth: 0 }}>
                         <Typography
+                          component={RouterLink}
+                          to={`/vehicles/${vehicle.id}`}
                           noWrap
-                          sx={{ color: '#202b3c', fontWeight: 700 }}
+                          sx={{
+                            color: '#202b3c',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            '&:hover': { color: 'primary.main' },
+                          }}
                           variant="body2"
                         >
                           {vehicle.make} {vehicle.model}

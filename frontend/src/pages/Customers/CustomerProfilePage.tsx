@@ -122,6 +122,7 @@ export function CustomerProfilePage() {
         <CustomerStats vehiclesCount={vehiclesQuery.data?.length ?? 0} />
         <CustomerActivity
           customerId={customer.id ?? customerId}
+          customerName={customer.name}
           notes={customer.notes ?? ''}
           onAddVehicle={() =>
             navigate(`/customers/${customer.id ?? customerId}/vehicles/new`, {

@@ -1,13 +1,16 @@
-import { getJson, postJson } from '@app/api/client'
+import { getJson, postJson, putJson } from '@app/api/client'
 import {
   createCustomerVehicle,
+  getVehicle,
   getCustomerVehicles,
   getVehicles,
+  updateVehicle,
 } from './vehicles'
 
 jest.mock('@app/api/client', () => ({
   getJson: jest.fn(),
   postJson: jest.fn(),
+  putJson: jest.fn(),
 }))
 
 const payload = {
@@ -32,6 +35,26 @@ it('gets vehicles registered to a customer with authentication', async () => {
 
   await expect(getCustomerVehicles('token', 44)).resolves.toEqual(vehicles)
   expect(getJson).toHaveBeenCalledWith('/api/v1/customers/44/vehicles', {
+    accessToken: 'token',
+  })
+})
+
+it('gets a vehicle by id with authentication', async () => {
+  const vehicle = { ...payload, id: 91 }
+  jest.mocked(getJson).mockResolvedValue(vehicle)
+
+  await expect(getVehicle('token', 91)).resolves.toEqual(vehicle)
+  expect(getJson).toHaveBeenCalledWith('/api/v1/vehicles/91', {
+    accessToken: 'token',
+  })
+})
+
+it('URL-encodes a vehicle identifier when fetching a vehicle', async () => {
+  jest.mocked(getJson).mockResolvedValue({ ...payload, id: 91 })
+
+  await getVehicle('token', 'vehicle/91')
+
+  expect(getJson).toHaveBeenCalledWith('/api/v1/vehicles/vehicle%2F91', {
     accessToken: 'token',
   })
 })
@@ -70,4 +93,14 @@ it('URL-encodes the customer identifier', async () => {
     payload,
     { accessToken: 'token' },
   )
+})
+
+it('updates a vehicle with authentication', async () => {
+  const vehicle = { ...payload, id: 91 }
+  jest.mocked(putJson).mockResolvedValue(vehicle)
+
+  await expect(updateVehicle('token', 91, payload)).resolves.toEqual(vehicle)
+  expect(putJson).toHaveBeenCalledWith('/api/v1/vehicles/91', payload, {
+    accessToken: 'token',
+  })
 })

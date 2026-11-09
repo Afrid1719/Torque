@@ -135,6 +135,10 @@ export function VehicleCard({
                 minWidth: 0,
               }}
               title={`${vehicle.make} ${vehicle.model} ${vehicle.variant}`}
+              component={RouterLink}
+              to={`/vehicles/${vehicle.id}`}
+              color="inherit"
+              style={{ textDecoration: 'none' }}
             >
               {vehicle.make} {vehicle.model}
             </Typography>
@@ -230,7 +234,7 @@ export function VehicleCard({
                   textTransform: 'capitalize',
                 }}
               >
-                {vehicle.vehicle_type}
+                Vehicle Type: {vehicle.vehicle_type}
               </Typography>
             </Box>
           </Box>

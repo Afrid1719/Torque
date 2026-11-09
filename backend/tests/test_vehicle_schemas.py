@@ -191,7 +191,7 @@ def test_vehicle_list_response_includes_customer_summary() -> None:
             id=23,
             name="Asha Rao",
             mobile_number="+919876543210",
-            email="not-included@example.com",
+            email="asha@example.com",
         ),
     }
 
@@ -202,4 +202,24 @@ def test_vehicle_list_response_includes_customer_summary() -> None:
         "id": 23,
         "name": "Asha Rao",
         "mobile_number": "+919876543210",
+        "email": "asha@example.com",
     }
+
+
+def test_vehicle_list_response_allows_customer_without_email() -> None:
+    attributes = {
+        "id": 1,
+        **valid_vehicle_data(),
+        "is_active": True,
+        "customer": SimpleNamespace(
+            id=23,
+            name="Asha Rao",
+            mobile_number="+919876543210",
+            email=None,
+        ),
+    }
+
+    response = VehicleListResponse.model_validate(SimpleNamespace(**attributes))
+
+    assert response.customer is not None
+    assert response.customer.email is None

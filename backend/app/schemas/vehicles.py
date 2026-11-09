@@ -120,6 +120,7 @@ class VehicleCustomerResponse(BaseModel):
     id: int
     name: str
     mobile_number: str
+    email: str | None = None
 
 
 class VehicleListResponse(VehicleCreateResponse):

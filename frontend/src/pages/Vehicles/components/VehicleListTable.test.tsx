@@ -38,6 +38,9 @@ it('renders vehicle details and paginates through rows', () => {
 
   const table = screen.getByRole('table', { name: 'Vehicles' })
   expect(within(table).getByText('TEST-1')).toBeInTheDocument()
+  expect(
+    within(table).getByRole('link', { name: 'Make 1 Model' }),
+  ).toHaveAttribute('href', '/vehicles/1')
   expect(within(table).getByText('Asha Rao')).toHaveAttribute(
     'href',
     '/customers/44',
