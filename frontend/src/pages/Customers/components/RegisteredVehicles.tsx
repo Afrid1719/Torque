@@ -18,12 +18,14 @@ import type { Vehicle } from '@app/api/vehicles'
 
 export function RegisteredVehicles({
   customerId,
+  customerName,
   error,
   isLoading,
   onAddVehicle,
   vehicles,
 }: {
   customerId?: number | string
+  customerName?: string
   error?: string | null
   isLoading?: boolean
   onAddVehicle?: () => void
@@ -71,13 +73,24 @@ export function RegisteredVehicles({
           <Stack divider={<Divider flexItem />} spacing={0}>
             {vehicles.slice(0, 3).map((vehicle) => (
               <Box
+                component={RouterLink}
                 key={vehicle.id}
+                state={{
+                  customer: {
+                    id: customerId ?? vehicle.customer?.id,
+                    name: customerName ?? vehicle.customer?.name,
+                  },
+                }}
+                to={`/vehicles/${vehicle.id}`}
                 sx={{
                   alignItems: 'center',
                   display: 'grid',
                   gap: { xs: 1.5, sm: 2 },
                   gridTemplateColumns: { xs: '64px 1fr', sm: '78px 1fr auto' },
                   py: 2,
+                  color: 'inherit',
+                  textDecoration: 'none',
+                  '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
                 <Box

@@ -40,6 +40,10 @@ it('renders vehicle details and the associated customer profile link', () => {
   )
 
   expect(screen.getByText('BMW M4')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'BMW M4' })).toHaveAttribute(
+    'href',
+    '/vehicles/91',
+  )
   expect(screen.getByText('BIM-4202')).toBeInTheDocument()
   expect(screen.getByText('2022 · Competition · Petrol')).toBeInTheDocument()
   expect(screen.getByText('IN SERVICE')).toBeInTheDocument()

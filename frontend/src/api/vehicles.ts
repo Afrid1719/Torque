@@ -1,4 +1,4 @@
-import { getJson, postJson } from '@app/api/client'
+import { getJson, postJson, putJson } from '@app/api/client'
 import { API_V1_PREFIX } from '@app/api/constants'
 
 export type CreateVehicleRequest = {
@@ -25,7 +25,20 @@ export type Vehicle = CreateVehicleRequest & {
 export const customerVehiclesQueryKey = (customerId: string | number) =>
   ['customer', String(customerId), 'vehicles'] as const
 
+export const vehicleQueryKey = (vehicleId: string | number) =>
+  ['vehicle', String(vehicleId)] as const
+
 export const vehiclesQueryKey = ['vehicles'] as const
+
+export function getVehicle(
+  accessToken: string,
+  vehicleId: string | number,
+): Promise<Vehicle> {
+  return getJson<Vehicle>(
+    `${API_V1_PREFIX}/vehicles/${encodeURIComponent(String(vehicleId))}`,
+    { accessToken },
+  )
+}
 
 export function getVehicles(
   accessToken: string,
@@ -52,6 +65,7 @@ export function getCustomerVehicles(
 }
 
 export type VehicleCustomer = {
+  email?: string | null
   id: number
   mobile_number: string
   name: string
@@ -64,6 +78,18 @@ export function createCustomerVehicle(
 ): Promise<Vehicle> {
   return postJson<Vehicle, CreateVehicleRequest>(
     `${API_V1_PREFIX}/customers/${encodeURIComponent(String(customerId))}/vehicles`,
+    payload,
+    { accessToken },
+  )
+}
+
+export function updateVehicle(
+  accessToken: string,
+  vehicleId: string | number,
+  payload: CreateVehicleRequest,
+): Promise<Vehicle> {
+  return putJson<Vehicle, CreateVehicleRequest>(
+    `${API_V1_PREFIX}/vehicles/${encodeURIComponent(String(vehicleId))}`,
     payload,
     { accessToken },
   )

@@ -1,7 +1,18 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import type { Vehicle } from '@app/api/vehicles'
 import { CustomerActivity } from './CustomerActivity'
+
+function VehicleStateRoute() {
+  const location = useLocation()
+  const customer = (
+    location.state as { customer?: { id: number; name: string } }
+  )?.customer
+
+  return (
+    <div>{customer ? `${customer.name} (${customer.id})` : 'No customer'}</div>
+  )
+}
 
 const vehicle: Vehicle = {
   color: 'White',
@@ -54,13 +65,50 @@ it('shows vehicle loading and error states', () => {
 })
 
 it('renders registered vehicle details', () => {
-  render(<CustomerActivity notes="" vehicles={[vehicle]} />)
+  render(
+    <MemoryRouter>
+      <CustomerActivity
+        customerId={44}
+        customerName="Asha Rao"
+        notes=""
+        vehicles={[vehicle]}
+      />
+    </MemoryRouter>,
+  )
 
   expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument()
+  expect(
+    screen.getByRole('link', { name: /BMW M4 Competition/ }),
+  ).toHaveAttribute('href', '/vehicles/91')
   expect(screen.getByText('BIM-4202')).toBeInTheDocument()
   expect(screen.getByText('2022 • 12,400 km')).toBeInTheDocument()
   expect(screen.getByText('READY')).toBeInTheDocument()
   expect(screen.queryByText('No vehicles registered')).not.toBeInTheDocument()
+})
+
+it('preserves customer context when opening one of their vehicles', () => {
+  render(
+    <MemoryRouter initialEntries={['/customers/44']}>
+      <Routes>
+        <Route
+          element={
+            <CustomerActivity
+              customerId={44}
+              customerName="Asha Rao"
+              notes=""
+              vehicles={[vehicle]}
+            />
+          }
+          path="/customers/44"
+        />
+        <Route element={<VehicleStateRoute />} path="/vehicles/:vehicleId" />
+      </Routes>
+    </MemoryRouter>,
+  )
+
+  fireEvent.click(screen.getByRole('link', { name: /BMW M4 Competition/ }))
+
+  expect(screen.getByText('Asha Rao (44)')).toBeInTheDocument()
 })
 
 it('shows a link to more vehicles only when there are more than three', () => {

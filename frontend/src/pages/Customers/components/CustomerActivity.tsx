@@ -17,6 +17,7 @@ import { RegisteredVehicles } from '@app/pages/Customers/components/RegisteredVe
 
 export function CustomerActivity({
   customerId,
+  customerName,
   notes,
   onAddVehicle,
   onEditNotes,
@@ -25,6 +26,7 @@ export function CustomerActivity({
   vehiclesLoading,
 }: {
   customerId?: number | string
+  customerName?: string
   notes: string
   onAddVehicle?: () => void
   onEditNotes?: () => void
@@ -44,6 +46,7 @@ export function CustomerActivity({
       <Stack spacing={3}>
         <RegisteredVehicles
           customerId={customerId}
+          customerName={customerName}
           error={vehiclesError}
           isLoading={vehiclesLoading}
           onAddVehicle={onAddVehicle}
