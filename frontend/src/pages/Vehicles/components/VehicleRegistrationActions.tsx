@@ -6,11 +6,13 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 export function VehicleRegistrationActions({
   isSubmitting,
   onCancel,
-  onNotice,
+  draftStatus,
+  onSaveDraft,
 }: {
   isSubmitting: boolean
   onCancel: () => void
-  onNotice: (message: string) => void
+  draftStatus: string
+  onSaveDraft: () => void
 }) {
   return (
     <Box
@@ -47,8 +49,12 @@ export function VehicleRegistrationActions({
         >
           Cancel
         </Button>
-        <Typography color="text.secondary" sx={{ fontSize: 10 }}>
-          Draft auto-saved 2 mins ago
+        <Typography
+          aria-live="polite"
+          color="text.secondary"
+          sx={{ fontSize: 10 }}
+        >
+          {draftStatus}
         </Typography>
       </Stack>
       <Stack
@@ -57,7 +63,7 @@ export function VehicleRegistrationActions({
       >
         <Button
           disabled={isSubmitting}
-          onClick={() => onNotice('Draft saved locally.')}
+          onClick={onSaveDraft}
           size="small"
           variant="outlined"
         >

@@ -8,7 +8,7 @@ export function VehicleFormSection({
   title,
 }: {
   children: ReactNode
-  detail: string
+  detail: ReactNode
   icon: ReactNode
   title: string
 }) {
@@ -33,22 +33,26 @@ export function VehicleFormSection({
       >
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
-          <Typography component="h2" sx={{ fontSize: 16, fontWeight: 700 }}>
+          <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700 }}>
             {title}
           </Typography>
         </Stack>
-        <Typography
-          color="text.secondary"
-          sx={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: 0.6,
-            textAlign: 'right',
-            textTransform: 'uppercase',
-          }}
-        >
-          {detail}
-        </Typography>
+        {typeof detail === 'string' ? (
+          <Typography
+            color="text.secondary"
+            sx={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: 0.6,
+              textAlign: 'right',
+              textTransform: 'uppercase',
+            }}
+          >
+            {detail}
+          </Typography>
+        ) : (
+          detail
+        )}
       </Box>
       {children}
     </Card>

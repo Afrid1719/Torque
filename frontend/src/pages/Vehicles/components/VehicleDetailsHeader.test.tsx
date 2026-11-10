@@ -1,21 +1,7 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { updateVehicle, type Vehicle } from '@app/api/vehicles'
-import { useAuth } from '@app/hooks/useAuth'
+import type { Vehicle } from '@app/api/vehicles'
 import { VehicleDetailsHeader } from './VehicleDetailsHeader'
-
-jest.mock('@app/api/vehicles', () => ({
-  customerVehiclesQueryKey: (id: string | number) => [
-    'customer',
-    String(id),
-    'vehicles',
-  ],
-  updateVehicle: jest.fn(),
-  vehicleQueryKey: (id: string | number) => ['vehicle', String(id)],
-  vehiclesQueryKey: ['vehicles'],
-}))
-jest.mock('@app/hooks/useAuth', () => ({ useAuth: jest.fn() }))
 
 const vehicle: Vehicle = {
   color: 'White',
@@ -40,71 +26,40 @@ const vehicle: Vehicle = {
   vin: 'WBA3N5C51FK289410',
 }
 
-function renderHeader() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <VehicleDetailsHeader vehicle={vehicle} />
-      </MemoryRouter>
-    </QueryClientProvider>,
+it('shows vehicle details and links to the full edit page', () => {
+  render(
+    <MemoryRouter>
+      <VehicleDetailsHeader vehicle={vehicle} />
+    </MemoryRouter>,
   )
-}
-
-beforeEach(() => {
-  jest.mocked(useAuth).mockReturnValue({ accessToken: 'test-token' } as never)
-})
-
-it('renders the Indian registration, vehicle details, and in-service status', () => {
-  renderHeader()
 
   expect(screen.getByText('IND')).toBeInTheDocument()
   expect(screen.getAllByText('DL02DS2213')).toHaveLength(2)
   expect(screen.getByText('VEHICLE TYPE · PRIVATE')).toBeInTheDocument()
   expect(screen.getByText('IN SERVICE')).toBeInTheDocument()
   expect(screen.getByText(/VIN: WBA3N5C51FK289410/)).toBeInTheDocument()
-})
-
-it('opens and saves the prefilled vehicle edit form', async () => {
-  jest.mocked(updateVehicle).mockResolvedValue(vehicle)
-  renderHeader()
-
-  fireEvent.click(screen.getByRole('button', { name: 'Edit Vehicle' }))
-  expect(
-    screen.getByRole('textbox', { name: 'Registration number' }),
-  ).toHaveValue('DL02DS2213')
-
-  fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-  await waitFor(() => {
-    expect(updateVehicle).toHaveBeenCalledWith(
-      'test-token',
-      91,
-      expect.objectContaining({
-        registration_number: 'DL02DS2213',
-        odometer: 18450,
-        vehicle_type: 'private',
-      }),
-    )
-  })
-  await waitFor(() =>
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+  expect(screen.getByRole('link', { name: 'Edit Vehicle' })).toHaveAttribute(
+    'href',
+    '/vehicles/91/edit',
   )
 })
 
-it('validates odometer before sending an update', () => {
-  renderHeader()
+it('uses customer-context breadcrumbs when supplied', () => {
+  render(
+    <MemoryRouter>
+      <VehicleDetailsHeader
+        customer={{ id: 1, name: 'John Doe' }}
+        vehicle={vehicle}
+      />
+    </MemoryRouter>,
+  )
 
-  fireEvent.click(screen.getByRole('button', { name: 'Edit Vehicle' }))
-  fireEvent.change(screen.getByRole('spinbutton', { name: 'Odometer (km)' }), {
-    target: { value: '0' },
-  })
-  fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-  expect(
-    screen.getByText('Enter an odometer reading greater than zero.'),
-  ).toBeInTheDocument()
-  expect(updateVehicle).not.toHaveBeenCalled()
+  expect(screen.getByRole('link', { name: 'Customers' })).toHaveAttribute(
+    'href',
+    '/customers',
+  )
+  expect(screen.getByRole('link', { name: 'John Doe' })).toHaveAttribute(
+    'href',
+    '/customers/1',
+  )
 })

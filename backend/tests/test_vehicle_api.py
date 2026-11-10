@@ -94,6 +94,7 @@ def build_vehicle_list_response() -> VehicleListResponse:
             name="Asha Rao",
             mobile_number="+919876543210",
             email="asha@example.com",
+            address="14 Market Road",
         ),
     )
 
@@ -215,6 +216,7 @@ def test_authorized_staff_can_list_vehicles(
         "name": "Asha Rao",
         "mobile_number": "+919876543210",
         "email": "asha@example.com",
+        "address": "14 Market Road",
     }
     list_vehicles.assert_awaited_once()
     assert list_vehicles.await_args is not None
@@ -290,6 +292,7 @@ def test_authorized_staff_can_fetch_vehicle_by_id(
         "name": "Asha Rao",
         "mobile_number": "+919876543210",
         "email": "asha@example.com",
+        "address": "14 Market Road",
     }
     lookup.assert_awaited_once()
     assert lookup.await_args is not None

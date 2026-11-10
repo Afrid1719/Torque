@@ -6,12 +6,12 @@ import type { CustomerProfileState } from '@app/utils/customers/customerProfileM
 
 export function VehicleRegistrationHeader({
   isSubmitting,
-  onNotice,
+  onSaveDraft,
 }: {
   customer: CustomerProfileState
   customerId?: string
   isSubmitting: boolean
-  onNotice: (message: string) => void
+  onSaveDraft: () => void
 }) {
   return (
     <Box
@@ -45,7 +45,7 @@ export function VehicleRegistrationHeader({
       >
         <Button
           disabled={isSubmitting}
-          onClick={() => onNotice('Draft saved locally.')}
+          onClick={onSaveDraft}
           size="small"
           sx={{ px: 2 }}
           variant="outlined"

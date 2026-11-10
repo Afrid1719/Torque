@@ -83,6 +83,7 @@ function clickRegisterButton(name = 'Save & Register') {
 
 describe('RegisterVehiclePage', () => {
   beforeEach(() => {
+    window.localStorage.clear()
     jest.mocked(createCustomerVehicle).mockResolvedValue(createdVehicle)
   })
 
@@ -168,6 +169,63 @@ describe('RegisterVehiclePage', () => {
 
     expect(screen.getByText('Draft saved locally.')).toBeInTheDocument()
     expect(createCustomerVehicle).not.toHaveBeenCalled()
+  })
+
+  it('auto-saves changes and restores the vehicle type with the draft', async () => {
+    const firstRender = renderPage()
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Vehicle Type' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Commercial' }))
+    fireEvent.mouseDown(
+      screen.getByRole('combobox', { name: 'Transmission Type' }),
+    )
+    fireEvent.click(screen.getByRole('option', { name: 'Manual' }))
+
+    await waitFor(() => {
+      expect(
+        window.localStorage.getItem('torque:vehicle-registration-draft:44'),
+      ).toContain('"vehicle_type":"commercial"')
+      expect(
+        window.localStorage.getItem('torque:vehicle-registration-draft:44'),
+      ).toContain('"transmission":"manual"')
+    })
+    expect(screen.getByText('Draft auto-saved just now')).toBeInTheDocument()
+
+    firstRender.unmount()
+    renderPage()
+
+    expect(
+      screen.getByRole('combobox', { name: 'Vehicle Type' }),
+    ).toHaveTextContent('Commercial')
+    expect(
+      screen.getByRole('combobox', { name: 'Transmission Type' }),
+    ).toHaveTextContent('Manual')
+    expect(screen.getByText('Draft restored')).toBeInTheDocument()
+  })
+
+  it('removes the saved draft after successful registration', async () => {
+    renderPage()
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Vehicle Type' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Commercial' }))
+
+    await waitFor(() => {
+      expect(
+        window.localStorage.getItem('torque:vehicle-registration-draft:44'),
+      ).toContain('"vehicle_type":"commercial"')
+    })
+
+    clickRegisterButton()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm & Register' }))
+
+    await waitFor(() => {
+      expect(
+        window.localStorage.getItem('torque:vehicle-registration-draft:44'),
+      ).toBeNull()
+    })
+    expect(createCustomerVehicle).toHaveBeenCalledWith(
+      'test-token',
+      '44',
+      expect.objectContaining({ vehicle_type: 'commercial' }),
+    )
   })
 
   it('keeps the VIN scan action available inside its field', () => {
@@ -293,8 +351,8 @@ describe('RegisterVehiclePage', () => {
       screen.getByText('Rivian 330i M Sport LCI (2022)'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Customer reports a steering vibration.'),
-    ).toBeInTheDocument()
+      screen.getAllByText('Customer reports a steering vibration.'),
+    ).not.toHaveLength(0)
     expect(screen.getByText('POLICY-42 · Exp: 2027-05-01')).toBeInTheDocument()
     expect(
       screen.getByText('Handover checklist: 4 of 4 items checked'),

@@ -10,12 +10,12 @@ const customer: CustomerProfileState = {
 }
 
 it('renders the title, submit actions, and draft feedback callback', () => {
-  const onNotice = jest.fn()
+  const onSaveDraft = jest.fn()
   render(
     <VehicleRegistrationHeader
       customer={customer}
       isSubmitting={false}
-      onNotice={onNotice}
+      onSaveDraft={onSaveDraft}
     />,
   )
 
@@ -30,7 +30,7 @@ it('renders the title, submit actions, and draft feedback callback', () => {
   ).toHaveAttribute('type', 'submit')
 
   fireEvent.click(screen.getByRole('button', { name: 'Save as Draft' }))
-  expect(onNotice).toHaveBeenCalledWith('Draft saved locally.')
+  expect(onSaveDraft).toHaveBeenCalledTimes(1)
 })
 
 it('disables submit actions while a request is pending', () => {
@@ -38,7 +38,7 @@ it('disables submit actions while a request is pending', () => {
     <VehicleRegistrationHeader
       customer={customer}
       isSubmitting
-      onNotice={jest.fn()}
+      onSaveDraft={jest.fn()}
     />,
   )
 

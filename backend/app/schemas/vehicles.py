@@ -121,6 +121,7 @@ class VehicleCustomerResponse(BaseModel):
     name: str
     mobile_number: str
     email: str | None = None
+    address: str | None = None
 
 
 class VehicleListResponse(VehicleCreateResponse):

@@ -12,6 +12,7 @@ import { LoginPage } from '@app/pages/Login/Login'
 import { PlaceholderPage } from '@app/pages/PlaceholderPage'
 import { RegisterVehiclePage } from '@app/pages/Vehicles/RegisterVehiclePage'
 import { VehicleDetailsPage } from '@app/pages/Vehicles/VehicleDetailsPage'
+import { VehicleEditPage } from '@app/pages/Vehicles/VehicleEditPage'
 import { VehicleListPage } from '@app/pages/Vehicles/VehicleListPage'
 
 export function AppRoutes() {
@@ -49,6 +50,21 @@ export function AppRoutes() {
           <Route element={<VehicleListPage />} path="/vehicles" />
           <Route element={<RegisterVehiclePage />} path="/vehicles/new" />
           <Route element={<VehicleDetailsPage />} path="/vehicles/:vehicleId" />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.WORKSHOP_MANAGER,
+                  RoleName.SERVICE_ADVISOR,
+                ]}
+              />
+            }
+          >
+            <Route
+              element={<VehicleEditPage />}
+              path="/vehicles/:vehicleId/edit"
+            />
+          </Route>
           <Route
             element={<PlaceholderPage title="Job Cards" />}
             path="/job-cards"
