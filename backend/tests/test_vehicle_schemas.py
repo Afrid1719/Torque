@@ -192,6 +192,7 @@ def test_vehicle_list_response_includes_customer_summary() -> None:
             name="Asha Rao",
             mobile_number="+919876543210",
             email="asha@example.com",
+            address="14 Market Road",
         ),
     }
 
@@ -203,6 +204,7 @@ def test_vehicle_list_response_includes_customer_summary() -> None:
         "name": "Asha Rao",
         "mobile_number": "+919876543210",
         "email": "asha@example.com",
+        "address": "14 Market Road",
     }
 
 
@@ -216,6 +218,7 @@ def test_vehicle_list_response_allows_customer_without_email() -> None:
             name="Asha Rao",
             mobile_number="+919876543210",
             email=None,
+            address=None,
         ),
     }
 
@@ -223,3 +226,4 @@ def test_vehicle_list_response_allows_customer_without_email() -> None:
 
     assert response.customer is not None
     assert response.customer.email is None
+    assert response.customer.address is None

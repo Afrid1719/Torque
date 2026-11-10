@@ -21,11 +21,23 @@ const handoverItems = [
 ]
 
 export function VehicleIntakeSection({
+  draftValues,
+  onDraftChange,
   sectionNumber = 4,
 }: {
+  draftValues?: {
+    fuelTankLevel: number
+    handoverItems: string[]
+    intakeNotes: string
+  }
+  onDraftChange?: (
+    field: 'fuelTankLevel' | 'handoverItems' | 'intakeNotes',
+    value: number | string | string[],
+  ) => void
   sectionNumber?: number
 }) {
   const [fuelTankLevel, setFuelTankLevel] = useState(75)
+  const displayedFuelTankLevel = draftValues?.fuelTankLevel ?? fuelTankLevel
 
   return (
     <VehicleFormSection
@@ -45,14 +57,22 @@ export function VehicleIntakeSection({
       >
         <Box>
           <TextField
-            defaultValue="Customer reports slight intermittent squeak in front right suspension when traversing low-speed speed-bumps. Minor cosmetic scratch (~4cm) observed on rear passenger bumper lower valance prior to bay admission."
+            defaultValue={
+              draftValues
+                ? undefined
+                : 'Customer reports slight intermittent squeak in front right suspension when traversing low-speed speed-bumps. Minor cosmetic scratch (~4cm) observed on rear passenger bumper lower valance prior to bay admission.'
+            }
             fullWidth
             helperText="Technician initials: AM (Alex Mercer)"
             label="Reported Symptoms & Cosmetic Inspection Notes"
             multiline
             minRows={3}
             name="intake_notes"
+            onChange={(event) =>
+              onDraftChange?.('intakeNotes', event.target.value)
+            }
             sx={vehicleFieldSx}
+            value={draftValues?.intakeNotes}
           />
           <Typography
             color="text.secondary"
@@ -70,8 +90,22 @@ export function VehicleIntakeSection({
               <FormControlLabel
                 control={
                   <Checkbox
-                    defaultChecked={index !== 2}
+                    checked={
+                      draftValues
+                        ? draftValues.handoverItems.includes(item)
+                        : undefined
+                    }
+                    defaultChecked={draftValues ? undefined : index !== 2}
                     name="handover_checklist"
+                    onChange={(event) => {
+                      if (!draftValues) return
+                      const nextItems = event.target.checked
+                        ? [...draftValues.handoverItems, item]
+                        : draftValues.handoverItems.filter(
+                            (checkedItem) => checkedItem !== item,
+                          )
+                      onDraftChange?.('handoverItems', nextItems)
+                    }}
                     size="small"
                     sx={{ p: 0.5 }}
                     value={item}
@@ -145,7 +179,7 @@ export function VehicleIntakeSection({
                   color="primary.dark"
                   sx={{ fontSize: 18, fontWeight: 700, lineHeight: 1 }}
                 >
-                  {fuelTankLevel}%
+                  {displayedFuelTankLevel}%
                 </Typography>
               </Stack>
               <Slider
@@ -160,11 +194,13 @@ export function VehicleIntakeSection({
                 ]}
                 max={100}
                 min={0}
-                onChange={(_, value) =>
-                  setFuelTankLevel(typeof value === 'number' ? value : value[0])
-                }
+                onChange={(_, value) => {
+                  const nextLevel = typeof value === 'number' ? value : value[0]
+                  setFuelTankLevel(nextLevel)
+                  onDraftChange?.('fuelTankLevel', nextLevel)
+                }}
                 step={1}
-                value={fuelTankLevel}
+                value={draftValues?.fuelTankLevel ?? fuelTankLevel}
                 valueLabelDisplay="auto"
                 sx={{
                   color: '#0058be',
@@ -201,7 +237,7 @@ export function VehicleIntakeSection({
                 name="fuel_tank_level"
                 readOnly
                 type="hidden"
-                value={fuelTankLevel}
+                value={displayedFuelTankLevel}
               />
               <Stack
                 direction="row"
@@ -211,9 +247,9 @@ export function VehicleIntakeSection({
                   Drag or use arrow keys for 1% adjustments
                 </Typography>
                 <Typography color="text.secondary" sx={{ fontSize: 9 }}>
-                  {fuelTankLevel === 0
+                  {displayedFuelTankLevel === 0
                     ? 'Empty'
-                    : fuelTankLevel === 100
+                    : displayedFuelTankLevel === 100
                       ? 'Full'
                       : 'Tank level'}
                 </Typography>

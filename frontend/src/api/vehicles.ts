@@ -65,6 +65,7 @@ export function getCustomerVehicles(
 }
 
 export type VehicleCustomer = {
+  address?: string | null
   email?: string | null
   id: number
   mobile_number: string

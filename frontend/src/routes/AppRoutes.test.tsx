@@ -38,6 +38,9 @@ jest.mock('../pages/Vehicles/VehicleListPage', () => ({
 jest.mock('../pages/Vehicles/VehicleDetailsPage', () => ({
   VehicleDetailsPage: () => <h1>Vehicle Details</h1>,
 }))
+jest.mock('../pages/Vehicles/VehicleEditPage', () => ({
+  VehicleEditPage: () => <h1>Edit Vehicle Page</h1>,
+}))
 
 it.each([
   ['/login', 'Login route'],
@@ -47,6 +50,7 @@ it.each([
   ['/customers/44', 'Customer profile route'],
   ['/vehicles', 'Vehicles List'],
   ['/vehicles/91', 'Vehicle Details'],
+  ['/vehicles/91/edit', 'Edit Vehicle Page'],
   ['/vehicles/new', 'Register Vehicle'],
   ['/customers/44/vehicles/new', 'Register Vehicle'],
 ])('routes %s to its page', (path, content) => {

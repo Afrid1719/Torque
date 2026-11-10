@@ -20,6 +20,7 @@ export const activeJobCard = {
 export const serviceBayStaff = {
   technician: 'Alex Mercer',
   role: 'Master Tech · BMW Certified',
+  shortBay: 'Bay 02',
   bay: 'Bay 02 (Hydraulic 2-Post)',
   shiftStatus: 'Active on Shift',
   intakeMemo:

@@ -3,16 +3,17 @@ import { VehicleRegistrationActions } from './VehicleRegistrationActions'
 
 it('wires footer actions to submit, cancel, and draft callbacks', () => {
   const onCancel = jest.fn()
-  const onNotice = jest.fn()
+  const onSaveDraft = jest.fn()
   render(
     <VehicleRegistrationActions
+      draftStatus="All changes saved"
       isSubmitting={false}
       onCancel={onCancel}
-      onNotice={onNotice}
+      onSaveDraft={onSaveDraft}
     />,
   )
 
-  expect(screen.getByText('Draft auto-saved 2 mins ago')).toBeInTheDocument()
+  expect(screen.getByText('All changes saved')).toBeInTheDocument()
   expect(
     screen.getByRole('button', { name: 'Save & Register' }),
   ).toHaveAttribute('form', 'register-vehicle-form')
@@ -23,15 +24,16 @@ it('wires footer actions to submit, cancel, and draft callbacks', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
   fireEvent.click(screen.getByRole('button', { name: 'Save as Draft' }))
   expect(onCancel).toHaveBeenCalledTimes(1)
-  expect(onNotice).toHaveBeenCalledWith('Draft saved locally.')
+  expect(onSaveDraft).toHaveBeenCalledTimes(1)
 })
 
 it('disables footer actions while a request is pending', () => {
   render(
     <VehicleRegistrationActions
+      draftStatus="All changes saved"
       isSubmitting
       onCancel={jest.fn()}
-      onNotice={jest.fn()}
+      onSaveDraft={jest.fn()}
     />,
   )
 

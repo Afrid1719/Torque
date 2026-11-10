@@ -1,6 +1,6 @@
 import { Alert, Box, Snackbar } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { ApiError } from '@app/api/client'
 import {
@@ -21,6 +21,10 @@ import {
 } from '@app/pages/Vehicles/components/VehicleRegistrationPreviewDialog'
 import { VehicleRegistryBanner } from '@app/pages/Vehicles/components/VehicleRegistryBanner'
 import { VehicleTechnicalSection } from '@app/pages/Vehicles/components/VehicleTechnicalSection'
+import {
+  createDefaultVehicleRegistrationDraft,
+  parseVehicleRegistrationDraft,
+} from '@app/pages/Vehicles/components/vehicleRegistrationDraft'
 
 const sampleCustomer: CustomerProfileState = {
   address: 'Bay Area Depot #4',
@@ -53,16 +57,36 @@ export function RegisterVehiclePage() {
   const firstVehicleSectionNumber = hasCustomerContext ? 2 : 1
   const customer = navigationCustomer ?? sampleCustomer
   const requestCustomerId = customerId ?? navigationCustomer?.id?.toString()
-  const [fuelType, setFuelType] =
-    useState<CreateVehicleRequest['fuel_type']>('petrol')
+  const draftStorageKey = `torque:vehicle-registration-draft:${requestCustomerId ?? 'unassigned'}`
+  const [draftState, setDraftState] = useState(() => {
+    try {
+      const savedDraft = window.localStorage.getItem(draftStorageKey)
+      return {
+        draft: savedDraft
+          ? parseVehicleRegistrationDraft(savedDraft)
+          : createDefaultVehicleRegistrationDraft(),
+        status: savedDraft ? 'Draft restored' : 'All changes saved',
+      }
+    } catch (error) {
+      return {
+        draft: createDefaultVehicleRegistrationDraft(),
+        status: `Draft unavailable: ${error instanceof Error ? error.message : 'Unable to read saved draft.'}`,
+      }
+    }
+  })
+  const [isDraftDirty, setIsDraftDirty] = useState(false)
+  const [draftStatus, setDraftStatus] = useState(draftState.status)
   const [notice, setNotice] = useState('')
-  const [noticeSeverity, setNoticeSeverity] = useState<'success' | 'info'>(
-    'info',
-  )
+  const [noticeSeverity, setNoticeSeverity] = useState<
+    'error' | 'success' | 'info'
+  >('info')
   const [requestError, setRequestError] = useState<string | null>(null)
   const [preview, setPreview] = useState<VehicleRegistrationPreview | null>(
     null,
   )
+  const fuelType = isOneOf(draftState.draft.values.fuel_type, fuelTypeValues)
+    ? draftState.draft.values.fuel_type
+    : 'petrol'
   const mutation = useMutation({
     mutationFn: (payload: CreateVehicleRequest) => {
       if (!accessToken)
@@ -73,6 +97,62 @@ export function RegisterVehiclePage() {
       return createCustomerVehicle(accessToken, requestCustomerId, payload)
     },
   })
+
+  useEffect(() => {
+    if (!isDraftDirty) return
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          draftStorageKey,
+          JSON.stringify(draftState.draft),
+        )
+        setIsDraftDirty(false)
+        setDraftStatus('Draft auto-saved just now')
+      } catch (error) {
+        setDraftStatus('Draft could not be auto-saved')
+        setNoticeSeverity('error')
+        setNotice(
+          `Unable to auto-save draft: ${error instanceof Error ? error.message : 'Storage is unavailable.'}`,
+        )
+      }
+    }, 500)
+    return () => window.clearTimeout(timeout)
+  }, [draftStorageKey, draftState.draft, isDraftDirty])
+
+  const updateDraft = (
+    update: (current: typeof draftState.draft) => typeof draftState.draft,
+  ) => {
+    setDraftState((current) => ({ ...current, draft: update(current.draft) }))
+    setIsDraftDirty(true)
+    setDraftStatus('Unsaved changes')
+  }
+  const setVehicleField = (
+    field: keyof typeof draftState.draft.values,
+    value: string,
+  ) => {
+    updateDraft((current) => ({
+      ...current,
+      values: { ...current.values, [field]: value },
+    }))
+  }
+  const saveDraft = () => {
+    try {
+      window.localStorage.setItem(
+        draftStorageKey,
+        JSON.stringify(draftState.draft),
+      )
+      setIsDraftDirty(false)
+      setDraftStatus('Draft saved just now')
+      setNoticeSeverity('success')
+      setNotice('Draft saved locally.')
+    } catch (error) {
+      setDraftStatus('Draft could not be saved')
+      setNoticeSeverity('error')
+      setNotice(
+        `Unable to save draft: ${error instanceof Error ? error.message : 'Storage is unavailable.'}`,
+      )
+    }
+  }
 
   const showNotice = (message: string) => {
     setNoticeSeverity('info')
@@ -182,6 +262,13 @@ export function RegisterVehiclePage() {
     setRequestError(null)
     try {
       const vehicle = await mutation.mutateAsync(preview.payload)
+      try {
+        window.localStorage.removeItem(draftStorageKey)
+        setIsDraftDirty(false)
+        setDraftStatus('Registration complete')
+      } catch {
+        setDraftStatus('Registration succeeded; draft cleanup failed')
+      }
       setPreview(null)
       setNoticeSeverity('success')
       setNotice(
@@ -233,7 +320,7 @@ export function RegisterVehiclePage() {
           customer={customer}
           customerId={customerId}
           isSubmitting={mutation.isPending}
-          onNotice={showNotice}
+          onSaveDraft={saveDraft}
         />
         {hasCustomerContext && (
           <VehicleRegistryBanner customer={customer} customerId={customerId} />
@@ -256,16 +343,27 @@ export function RegisterVehiclePage() {
             />
           )}
           <VehicleIdentificationSection
+            onChange={setVehicleField}
             onNotice={showNotice}
             sectionNumber={firstVehicleSectionNumber}
+            values={draftState.draft.values}
           />
           <VehicleTechnicalSection
             fuelType={fuelType}
-            onFuelTypeChange={setFuelType}
+            onChange={setVehicleField}
+            onFuelTypeChange={(value) => setVehicleField('fuel_type', value)}
             sectionNumber={firstVehicleSectionNumber + 1}
+            values={draftState.draft.values}
           />
-          <VehicleIntakeSection sectionNumber={firstVehicleSectionNumber + 2} />
+          <VehicleIntakeSection
+            draftValues={draftState.draft}
+            onDraftChange={(field, value) =>
+              updateDraft((current) => ({ ...current, [field]: value }))
+            }
+            sectionNumber={firstVehicleSectionNumber + 2}
+          />
           <VehicleRegistrationActions
+            draftStatus={draftStatus}
             isSubmitting={mutation.isPending}
             onCancel={() =>
               navigate(
@@ -274,7 +372,7 @@ export function RegisterVehiclePage() {
                   : '/vehicles',
               )
             }
-            onNotice={showNotice}
+            onSaveDraft={saveDraft}
           />
         </Box>
       </Box>

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { VehicleEditValues } from './vehicleEditForm'
 import { VehicleTechnicalSection } from './VehicleTechnicalSection'
 
 it.each([
@@ -56,4 +57,43 @@ it('uses the supplied section number', () => {
       name: '2. Technical & Operational Parameters',
     }),
   ).toBeInTheDocument()
+})
+
+it('renders controlled edit values and reports technical changes', () => {
+  const onChange = jest.fn()
+  const values: VehicleEditValues = {
+    color: 'Alpine White',
+    engine_capacity: '1998',
+    fuel_type: 'petrol',
+    is_active: 'true',
+    make: 'BMW',
+    manufacture_year: '2022',
+    model: '330i',
+    odometer: '18450',
+    registration_number: 'DL02DS2213',
+    transmission: 'automatic',
+    variant: 'M Sport LCI',
+    vehicle_type: 'private',
+    vin: 'WBA3N5C51FK289410',
+  }
+  render(
+    <VehicleTechnicalSection
+      editMode
+      fuelType="petrol"
+      onChange={onChange}
+      onFuelTypeChange={jest.fn()}
+      values={values}
+    />,
+  )
+
+  const odometer = screen.getByRole('spinbutton', {
+    name: 'Current Odometer (km)',
+  })
+  expect(odometer).toHaveValue(18450)
+  expect(screen.queryByText('OBD-II Baseline Profile')).not.toBeInTheDocument()
+  fireEvent.change(odometer, { target: { value: '21000' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Diesel' }))
+
+  expect(onChange).toHaveBeenCalledWith('odometer', '21000')
+  expect(onChange).toHaveBeenCalledWith('fuel_type', 'diesel')
 })
