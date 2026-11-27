@@ -61,6 +61,25 @@ To verify connectivity:
 TORQUE uses Alembic for controlled database schema changes.
 FastAPI startup does not create or recreate database tables automatically.
 
+### Adding or changing a model
+
+Define each SQLAlchemy model as a subclass of `Base` from `app/db/base.py`.
+Import the model in `app/db/models/__init__.py` so the import of
+`app.db.models` in `migrations/env.py` registers its table in `Base.metadata`.
+Alembic uses that metadata to compare the models with the current database
+schema when generating migrations.
+
+From the `backend` directory, create a migration after adding or changing a
+model:
+
+```bash
+alembic revision --autogenerate -m "describe schema change"
+```
+
+Autogenerate is a starting point, not a substitute for reviewing the migration.
+Check that it includes the intended changes and constraints, and edit it when
+needed before applying it with `alembic upgrade head`.
+
 Run migration commands from the `backend` directory:
 
 ```bash
@@ -95,8 +114,97 @@ Run backend quality commands from the `backend` directory:
 python -m ruff check .
 python -m ruff format .
 python -m ruff format --check .
+python -m pyright app
 python -m pytest
 ```
+
+## Password Hashing
+
+TORQUE hashes user passwords with Argon2id through `pwdlib`. The shared
+`app/core/security.py` utility creates salted password hashes and verifies
+submitted passwords against stored hashes.
+
+Plain-text passwords and password hashes must not be logged or returned in API
+responses. Password-policy validation, user creation, and login behavior are
+handled separately from the hashing utility.
+
+## Login Configuration
+
+The login endpoint is available at `POST /api/v1/auth/login`. Successful login
+returns a short-lived JWT access token and sets the refresh token in an
+HttpOnly cookie. The raw refresh token is never returned in JSON, and only its
+hash is stored in `user_sessions`.
+
+Configure authentication through `backend/.env`:
+
+```env
+JWT_SECRET_KEY=replace_with_at_least_32_random_characters
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_SESSION_EXPIRE_DAYS=10
+REMEMBERED_REFRESH_SESSION_EXPIRE_DAYS=30
+REFRESH_COOKIE_NAME=torque_refresh_token
+```
+
+The access-token lifetime must remain between 15 and 30 minutes. By default, a
+refresh session expires after 10 days and its browser-session cookie is removed
+when the browser session ends. Sending `remember_me: true` creates a persistent
+30-day refresh session and cookie. The refresh cookie is marked `Secure`
+outside local development.
+
+Authenticated clients can send the access token as `Authorization: Bearer
+<token>` to `GET /api/v1/auth/me`. The endpoint returns the current user's ID,
+username, and current database-backed role information.
+
+Clients log out with `POST /api/v1/auth/logout`. The endpoint revokes the
+matching server-side refresh session when present, clears the refresh cookie,
+and returns HTTP 204. Logout is idempotent, but still requires an allowed
+frontend `Origin` because the refresh credential is cookie-backed.
+
+## Customer API
+
+Workshop Managers and Service Advisors can create a customer with
+`POST /api/v1/customers` and retrieve the resulting record with
+`GET /api/v1/customers/{customer_id}`. Customer name and mobile number are
+required; email, address, and notes are optional. Mobile numbers are stored in
+a canonical form and must be unique. Duplicate creation returns HTTP 409, and
+unknown customer IDs return HTTP 404.
+
+Both endpoints require a bearer access token. Mechanics are not authorized to
+create or retrieve customer profiles through these customer-management routes.
+
+## Development Users
+
+TORQUE provides an explicit local-only command that creates or updates one
+sample user for each supported role. It refuses to run unless
+`APP_ENV=development` and is never called during application startup.
+
+Generate three unique local passwords of at least 12 characters:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(18))"
+```
+
+Run the command three times and place the generated values only in the local
+`backend/.env` file under these names:
+
+```env
+DEV_SEED_WORKSHOP_MANAGER_PASSWORD=
+DEV_SEED_SERVICE_ADVISOR_PASSWORD=
+DEV_SEED_MECHANIC_PASSWORD=
+```
+
+Apply migrations, then run the seed command from `backend`:
+
+```bash
+alembic upgrade head
+python -m app.scripts.seed_dev_users
+```
+
+The idempotent command creates or updates `dev_manager`, `dev_advisor`, and
+`dev_mechanic`. Passwords are Argon2id hashes in MySQL; raw values are never
+printed or stored by the seed process. Do not use these accounts or seed
+variables outside local development.
 
 ## Setup
 

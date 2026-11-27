@@ -1,5 +1,11 @@
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault(
+    "JWT_SECRET_KEY",
+    "torque_unit_test_only_jwt_secret_key_32_chars",
+)
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 

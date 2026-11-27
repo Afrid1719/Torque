@@ -1,0 +1,93 @@
+import { Navigate, Route, Routes } from 'react-router'
+
+import { RoleName } from '@app/api/auth'
+import { ProtectedRoute } from '@app/contexts/ProtectedRoute'
+import { AppShell } from '@app/layouts/AppShell'
+import { DashboardPage } from '@app/pages/DashboardPage'
+import { AddCustomerPage } from '@app/pages/Customers/AddCustomerPage'
+import { CustomerListPage } from '@app/pages/Customers/CustomerListPage'
+import { CustomerProfilePage } from '@app/pages/Customers/CustomerProfilePage'
+import { CustomerEditPage } from '@app/pages/Customers/CustomerEditPage'
+import { LoginPage } from '@app/pages/Login/Login'
+import { PlaceholderPage } from '@app/pages/PlaceholderPage'
+import { RegisterVehiclePage } from '@app/pages/Vehicles/RegisterVehiclePage'
+import { VehicleDetailsPage } from '@app/pages/Vehicles/VehicleDetailsPage'
+import { VehicleEditPage } from '@app/pages/Vehicles/VehicleEditPage'
+import { VehicleListPage } from '@app/pages/Vehicles/VehicleListPage'
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<LoginPage />} path="/login" />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppShell />}>
+          <Route element={<DashboardPage />} path="/" />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.WORKSHOP_MANAGER,
+                  RoleName.SERVICE_ADVISOR,
+                ]}
+              />
+            }
+          >
+            <Route element={<CustomerListPage />} path="/customers" />
+            <Route element={<AddCustomerPage />} path="/customers/new" />
+            <Route
+              element={<CustomerProfilePage />}
+              path="/customers/:customerId"
+            />
+            <Route
+              element={<CustomerEditPage />}
+              path="/customers/:customerId/edit"
+            />
+            <Route
+              element={<RegisterVehiclePage />}
+              path="/customers/:customerId/vehicles/new"
+            />
+          </Route>
+          <Route element={<VehicleListPage />} path="/vehicles" />
+          <Route element={<RegisterVehiclePage />} path="/vehicles/new" />
+          <Route element={<VehicleDetailsPage />} path="/vehicles/:vehicleId" />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.WORKSHOP_MANAGER,
+                  RoleName.SERVICE_ADVISOR,
+                ]}
+              />
+            }
+          >
+            <Route
+              element={<VehicleEditPage />}
+              path="/vehicles/:vehicleId/edit"
+            />
+          </Route>
+          <Route
+            element={<PlaceholderPage title="Job Cards" />}
+            path="/job-cards"
+          />
+          <Route
+            element={<PlaceholderPage title="Inventory" />}
+            path="/inventory"
+          />
+          <Route
+            element={<PlaceholderPage title="Billing" />}
+            path="/billing"
+          />
+          <Route
+            element={<PlaceholderPage title="Reports" />}
+            path="/reports"
+          />
+          <Route
+            element={<PlaceholderPage title="Settings" />}
+            path="/settings"
+          />
+        </Route>
+      </Route>
+      <Route element={<Navigate to="/" replace />} path="*" />
+    </Routes>
+  )
+}
